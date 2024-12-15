@@ -15,6 +15,7 @@ logger = logging.getLogger("uvicorn")
 BACKEND_SERVERS = []
 
 
+GLOBAL_ARGS = None
 
 async def process_request(request, backend_url):
     """
@@ -42,11 +43,11 @@ async def route_chat_completition(request: Request):
     """
     Route the incoming request to the backend server and stream the response back to the client.
     """
-    request_headers = request.headers
-    request_body = await request.body()
+    #request_headers = request.headers
+    #request_body = await request.body()
     #print(request_headers)
     #print(request_body)
-    server_url = pick_server_for_request(request, BACKEND_SERVERS)
+    server_url = pick_server_for_request(request, BACKEND_SERVERS, GLOBAL_ARGS.routing_key)
     logger.info(f"Routing request to {server_url}")
     stream_generator = process_request(request, server_url)
 
@@ -66,6 +67,7 @@ def parse_args():
     parser.add_argument("--backends", required=True, help="The URL of backend servers, separated by comma.")
     parser.add_argument("--host", default="0.0.0.0", help="The host to run the server on.")
     parser.add_argument("--port", type=int, default=8001, help="The port to run the server on.")
+    parser.add_argument("--routing-key", type=str, default=None, help="The routing key in the header.")
     args = parser.parse_args()
     return args
 
@@ -78,7 +80,7 @@ def parse_backend_urls(args):
             logger.warning(f"Skipping invalid url: {url}")
 
 if __name__ == "__main__":
-    args = parse_args()
-    parse_backend_urls(args)
+    GLOBAL_ARGS = parse_args()
+    parse_backend_urls(GLOBAL_ARGS)
 
-    uvicorn.run(app, host=args.host, port=args.port)
+    uvicorn.run(app, host=GLOBAL_ARGS.host, port=GLOBAL_ARGS.port)
