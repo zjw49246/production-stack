@@ -1,4 +1,4 @@
-test env (HF token and HF home)
+test env (HF token and HF home) -- DONE
+pre-deployment job to download the model
 pvcStorage -- load model from host
 pvcStorage -- readMany
-Download model

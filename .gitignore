@@ -91,3 +91,5 @@ perf-test.py
 /docs/output/
 
 /try
+
+values-*.yaml

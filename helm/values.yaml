@@ -11,7 +11,10 @@ image:
   command: ["vllm", "serve", "facebook/opt-125m", "--dtype", "bfloat16", "--host", "0.0.0.0", "--port", "8000"]
 
   # Optional: env
-  #env:
+  env:
+    - name: HF_HOME
+      value: "/data"
+
 
 # -- Container port
 containerPort: 8000
