@@ -1,0 +1,4 @@
+test env (HF token and HF home)
+pvcStorage -- load model from host
+pvcStorage -- readMany
+Download model
