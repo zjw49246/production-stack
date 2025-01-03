@@ -1,4 +1,11 @@
 test env (HF token and HF home) -- DONE
+
 pre-deployment job to download the model
-pvcStorage -- load model from host
 pvcStorage -- readMany
+
+
+Simplify by removing configurations
+
+Add router support
+- Role binding
+- router docker image build
