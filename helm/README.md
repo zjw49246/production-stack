@@ -6,7 +6,11 @@
 
 See [this doc](https://gd41ffv7q3z.larksuite.com/wiki/Xtj7wer5Ni9GXZkDEnfubXf0s7g?from=from_copylink) (internal doc link)
 
-### Create PersistentVolume (PV) in K8s
+### Create PersistentVolume (PV) in K8s (Optional)
+
+__NOTE__: This is optional because this helm chart is using `standard` storage class and the k8s cluster can dynamically create PVs for this storage class.
+
+If you want to create your own PV, follow the instructions below:
 
 Replace `<SIZE OF THE PV>` and `<HOST PATH ON YOUR MACHINE>` in the following yaml and save it as `pv.yaml`
 ```yaml
