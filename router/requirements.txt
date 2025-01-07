@@ -2,3 +2,5 @@ numpy
 fastapi
 httpx
 uvicorn
+kubernetes
+prometheus_client
