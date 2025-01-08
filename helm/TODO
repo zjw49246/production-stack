@@ -11,7 +11,7 @@ change the labels -- DONE
 Simplify by removing configurations -- DONE
 
 Add router support
-- Role binding
+- Role binding -- DONE
 - router docker image build
 
 # Potential problems
