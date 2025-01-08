@@ -64,15 +64,6 @@ Define additional ports
 {{-   end }}
 {{- end }}
 
-{{/*
-Define chart external ConfigMaps and Secrets
-*/}}
-{{- define "chart.externalConfigs" -}}
-{{-   with .Values.externalConfigs -}}
-{{      toYaml . }}
-{{-   end }}
-{{- end }}
-
 
 {{/*
 Define liveness et readiness probes

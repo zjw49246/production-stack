@@ -57,3 +57,7 @@ gpuModels:
 ## To stop
 
 run `helm uninstall test-vllm`
+
+## Extra notes:
+
+1. The `HF_HOME` is hard-coded to `/data` as the PV is mounted there

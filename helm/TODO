@@ -1,11 +1,18 @@
 test env (HF token and HF home) -- DONE
 
-pre-deployment job to download the model
-pvcStorage -- readMany
+pre-deployment job to download the model (DO IT LATER!)
+    python3 -c "from vllm import LLM; LLM(model='mistralai/Mistral-7B-Instruct-v0.2').generate('hello');"
+    pvcStorage: readMany?
 
+fix the problem of HF_HOME overwrite (change to extra env) -- DONE
+
+change the labels
 
 Simplify by removing configurations
 
 Add router support
 - Role binding
 - router docker image build
+
+# Potential problems
+PVC is ReadWriteMany, need to think about what will happen if the number of nodes > 1

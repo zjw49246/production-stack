@@ -16,12 +16,16 @@
                     "items": {
                         "type": "string"
                     }
-                }
+                },
+		"env": {
+		    "type": "array"
+		}
             },
             "required": [
                 "command",
                 "repository",
-                "tag"
+                "tag",
+		"env"
             ]
         },
         "containerPort": {
@@ -32,9 +36,6 @@
         },
         "servicePort": {
             "type": "integer"
-        },
-        "extraPorts": {
-            "type": "array"
         },
         "replicaCount": {
             "type": "integer"
@@ -229,7 +230,6 @@
         "customObjects",
         "deploymentStrategy",
         "externalConfigs",
-        "extraPorts",
 	"pvcStorage",
         "gpuModels",
         "image",

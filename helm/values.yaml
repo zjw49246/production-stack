@@ -1,6 +1,10 @@
 # -- Default values for chart vllm
 # -- Declare variables to be passed into your templates.
 
+# -- Type of gpu used
+gpuModels:
+  - "NVIDIA-RTX-A6000"
+
 # -- Image configuration
 image:
   # -- Image repository
@@ -9,11 +13,8 @@ image:
   tag: "latest"
   # -- Container launch command
   command: ["vllm", "serve", "facebook/opt-125m", "--dtype", "bfloat16", "--host", "0.0.0.0", "--port", "8000"]
-
-  # Optional: env
-  env:
-    - name: HF_HOME
-      value: "/data"
+  # Optional: env (e.g., for HF_TOKEN)
+  env: []
 
 
 # -- Container port
@@ -22,8 +23,6 @@ containerPort: 8000
 serviceName:
 # -- Service port
 servicePort: 80
-# -- Additional ports configuration
-extraPorts: []
 
 # -- Number of replicas
 replicaCount: 1
@@ -45,9 +44,6 @@ resources:
     # -- Number of gpus used
     nvidia.com/gpu: 1
 
-# -- Type of gpu used
-gpuModels:
-  - "NVIDIA-RTX-A6000"
 
 # -- Autoscaling configuration
 autoscaling:
@@ -62,13 +58,8 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 # -- Configmap
+# TODO: can be removed
 configs: {}
-
-# -- Secrets configuration
-secrets: {}
-
-# -- External configuration
-externalConfigs: []
 
 # -- Custom Objects configuration
 customObjects: []

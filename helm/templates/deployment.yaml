@@ -8,16 +8,14 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   {{- include "chart.strategy" . | nindent 2 }}
-  selector:                                                                                                                                  
+  selector:
     matchLabels:
-      environment: "test"
-      release: "test"
+    {{- include "chart.labels" . | nindent 6 }}
   progressDeadlineSeconds: 1200
   template:
     metadata:
       labels:
-        environment: "test"
-        release: "test"
+      {{- include "chart.labels" . | nindent 8 }}
     spec:
       containers:
         - name: "vllm"
@@ -39,29 +37,25 @@ spec:
             {{- end }}
           imagePullPolicy: IfNotPresent
           {{- if .Values.image.env }}
-          env :
+          env:
+          - name: HF_HOME
+            value: /data
             {{- with .Values.image.env }}
             {{- toYaml . | nindent 10 }}
             {{- end }}
           {{- else }}
           env: []
           {{- end }}
-          {{- if or .Values.externalConfigs .Values.configs .Values.secrets }}
+          {{- if .Values.configs }}
           envFrom:
             {{- if .Values.configs }}
             - configMapRef:
                 name: "{{ .Release.Name }}-configs"
             {{- end }}
-            {{- if .Values.secrets}}
-            - secretRef:
-                name: "{{ .Release.Name }}-secrets"
-            {{- end }}
-            {{- include "chart.externalConfigs" . | nindent 12 }}
           {{- end }}          
           ports:
             - name: {{ include "chart.container-port-name" . }}
               containerPort: {{ include "chart.container-port" . }}
-            {{- include "chart.extraPorts" . | nindent 12 }}
           {{- include "chart.probes" . | indent 10 }}
           resources: {{- include "chart.resources" . | nindent 12 }}
           volumeMounts:
@@ -73,10 +67,6 @@ spec:
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-storage-claim     
 
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
