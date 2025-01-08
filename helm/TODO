@@ -6,9 +6,9 @@ pre-deployment job to download the model (DO IT LATER!)
 
 fix the problem of HF_HOME overwrite (change to extra env) -- DONE
 
-change the labels
+change the labels -- DONE
 
-Simplify by removing configurations
+Simplify by removing configurations -- DONE
 
 Add router support
 - Role binding

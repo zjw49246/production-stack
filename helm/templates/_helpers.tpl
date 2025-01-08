@@ -46,13 +46,9 @@ Define deployment strategy
 */}}
 {{- define "chart.strategy" -}}
 strategy:
-{{-   if not .Values.deploymentStrategy }}
   rollingUpdate:
     maxSurge: 100%
     maxUnavailable: 0
-{{-   else }}
-{{      toYaml .Values.deploymentStrategy | indent 2 }}
-{{-   end }}
 {{- end }}
 
 {{/*

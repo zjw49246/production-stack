@@ -58,11 +58,7 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 # -- Configmap
-# TODO: can be removed
 configs: {}
-
-# -- Custom Objects configuration
-customObjects: []
 
 # -- Disruption Budget Configuration
 maxUnavailablePodDisruptionBudget: ""
@@ -108,6 +104,3 @@ tolerations:
   - key: "node-role.kubernetes.io/control-plane"
     operator: "Exists"
     effect: "NoSchedule"
-
-# -- Deployment strategy configuration
-deploymentStrategy: {}

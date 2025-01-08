@@ -40,9 +40,6 @@
         "replicaCount": {
             "type": "integer"
         },
-        "deploymentStrategy": {
-            "type": "object"
-        },
         "resources": {
             "type": "object",
             "properties": {
@@ -121,15 +118,6 @@
         },
         "configs": {
             "type": "object"
-        },
-        "secrets": {
-            "type": "object"
-        },
-        "externalConfigs": {
-            "type": "array"
-        },
-        "customObjects": {
-            "type": "array"
         },
         "maxUnavailablePodDisruptionBudget": {
             "type": "string"
@@ -227,9 +215,6 @@
         "autoscaling",
         "configs",
         "containerPort",
-        "customObjects",
-        "deploymentStrategy",
-        "externalConfigs",
 	"pvcStorage",
         "gpuModels",
         "image",
@@ -239,7 +224,6 @@
         "readinessProbe",
         "replicaCount",
         "resources",
-        "secrets",
         "servicePort"
     ]
 }
