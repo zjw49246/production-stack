@@ -110,37 +110,6 @@ runAsUser:
 {{-   end }}
 {{- end }}
 
-{{- define "chart.extraInitImage" -}}
-"amazon/aws-cli:2.6.4"
-{{- end }}
-
-{{- define "chart.extraInitEnv" -}}
-- name: S3_ENDPOINT_URL
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Release.Name }}-secrets
-      key: s3endpoint
-- name: S3_BUCKET_NAME
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Release.Name }}-secrets
-      key: s3bucketname
-- name: AWS_ACCESS_KEY_ID
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Release.Name }}-secrets
-      key: s3accesskeyid
-- name: AWS_SECRET_ACCESS_KEY
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Release.Name }}-secrets
-      key: s3accesskey
-- name: S3_PATH
-  value: "{{ .Values.extraInit.s3modelpath }}"
-- name: AWS_EC2_METADATA_DISABLED
-  value: "{{ .Values.extraInit.awsEc2MetadataDisabled }}"
-{{- end }}
-
 {{/*
   Define chart labels
 */}}
