@@ -5,5 +5,9 @@ if [[ $# -ne 1 ]]; then
 fi
 
 python3 router.py --port $1 \
-    --backends http://localhost:8000/v1/chat/completions,http://localhost:8001/v1/chat/completions \
-    --routing-key my_user_id
+    --service-discovery k8s \
+    --k8s-label-selector release=test \
+    --routing-logic session \
+    --session-key sessionId \
+
+    #--backends http://localhost:8000/v1/chat/completions,http://localhost:8001/v1/chat/completions \

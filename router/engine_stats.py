@@ -1,4 +1,5 @@
 from typing import Dict
+import time
 import threading
 import requests
 from dataclasses import dataclass
@@ -141,17 +142,17 @@ def GetEngineStatsScraper() -> EngineStatsScraper:
 
     return _global_engine_stats_scraper
 
-if __name__ == "__main__":
-    from service_discovery import InitializeServiceDiscovery, ServiceDiscoveryType
-    import time
-    InitializeServiceDiscovery(ServiceDiscoveryType.K8S, 
-                               namespace = "default", 
-                               port = 8000, 
-                               label_selector = "release=test")
-    time.sleep(1)
-    InitializeEngineStatsScraper(10.0)
-    engine_scraper = GetEngineStatsScraper()
-    while True:
-        engine_stats = engine_scraper.get_engine_stats()
-        print(engine_stats)
-        time.sleep(2.0)
+#if __name__ == "__main__":
+#    from service_discovery import InitializeServiceDiscovery, ServiceDiscoveryType
+#    import time
+#    InitializeServiceDiscovery(ServiceDiscoveryType.K8S, 
+#                               namespace = "default", 
+#                               port = 8000, 
+#                               label_selector = "release=test")
+#    time.sleep(1)
+#    InitializeEngineStatsScraper(10.0)
+#    engine_scraper = GetEngineStatsScraper()
+#    while True:
+#        engine_stats = engine_scraper.get_engine_stats()
+#        print(engine_stats)
+#        time.sleep(2.0)
