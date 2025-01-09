@@ -118,3 +118,18 @@ runAsUser:
 {{      toYaml . }}
 {{-   end }}
 {{- end }}
+
+
+{{/*
+  Define helper function to convert labels to a comma separated list
+*/}}
+{{- define "labels.toCommaSeparatedList" -}}
+{{- $labels := . -}}
+{{- $result := "" -}}
+{{- range $key, $value := $labels -}}
+  {{- if $result }},{{ end -}}
+  {{ $key }}={{ $value }}
+  {{- $result = "," -}}
+{{- end -}}
+{{- end -}}
+

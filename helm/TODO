@@ -6,14 +6,18 @@ pre-deployment job to download the model (DO IT LATER!)
 
 fix the problem of HF_HOME overwrite (change to extra env) -- DONE
 
+
 change the labels -- DONE
-  - different labels for vllm pod, vllm service, router pod
+  - different labels for vllm pod, vllm service, router pod, router service (use macro)
 
 Simplify by removing configurations -- DONE
 
 Add router support
 - Role binding -- DONE
-- router docker image build
+- router docker image build -- DONE
+- add configuration items for router in helm chart
+- add service for router
+- health check of the router
 
 # Potential problems
 PVC is ReadWriteMany, need to think about what will happen if the number of nodes > 1
