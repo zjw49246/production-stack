@@ -7,6 +7,7 @@ pre-deployment job to download the model (DO IT LATER!)
 fix the problem of HF_HOME overwrite (change to extra env) -- DONE
 
 change the labels -- DONE
+  - different labels for vllm pod, vllm service, router pod
 
 Simplify by removing configurations -- DONE
 
