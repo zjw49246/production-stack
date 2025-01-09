@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
 import time
+import threading
 import httpx
 import uvicorn
 import argparse
@@ -38,6 +39,7 @@ async def process_request(request, backend_url, request_id, endpoint):
         url=backend_url + endpoint, 
         headers=dict(request.headers),
         content=await request.body(),
+        timeout=None,
     ) as backend_response:
 
         # Pass response headers to the client
@@ -68,13 +70,11 @@ async def route_chat_completition(request: Request):
     request_id = str(REQUEST_ID)
     REQUEST_ID += 1
 
-    #request_headers = request.headers
-    #request_body = await request.body()
-    #print(request_headers)
-    #print(request_body)
     engine_urls = GetServiceDiscovery().get_engine_urls()
     engine_stats = GetEngineStatsScraper().get_engine_stats()
     request_stats = GetRequestStatsMonitor().get_request_stats(time.time())
+    #logger.info(f"Processing request {request_id}")
+    #logger.info(f"Request stats: {request_stats}")
 
     server_url = GLOBAL_ROUTER.route_request(
             engine_urls,
@@ -83,7 +83,7 @@ async def route_chat_completition(request: Request):
             request)
 
 
-    logger.info(f"Routing request to {server_url}")
+    logger.info(f"Routing request {REQUEST_ID} to {server_url}")
     stream_generator = process_request(
             request, 
             server_url, 
@@ -91,8 +91,6 @@ async def route_chat_completition(request: Request):
             endpoint = "/v1/chat/completions")
 
     headers, status_code = await anext(stream_generator)
-    logger.info(f"Response code: {status_code}")
-    #print(status_code)
 
     return StreamingResponse(
             stream_generator,
@@ -147,6 +145,9 @@ def parse_args():
     parser.add_argument("--request-stats-window", type=int, default=60,
                         help="The sliding window seconds to compute request statistics.")
 
+    # Logging
+    parser.add_argument("--log-stats", action="store_true", 
+                        help="Log statistics every 30 seconds.")
     args = parser.parse_args()
     validate_args(args)
     return args
@@ -189,10 +190,36 @@ def InitializeAll(args):
     else:
         raise ValueError(f"Invalid routing logic: {args.routing_logic}")
     
+def log_stats():
+    while True:
+        time.sleep(10)
+        logstr = "\n" + "="*50 + "\n"
+        server_urls = GetServiceDiscovery().get_engine_urls()
+        engine_stats = GetEngineStatsScraper().get_engine_stats()
+        request_stats = GetRequestStatsMonitor().get_request_stats(time.time())
+        for url in server_urls:
+            logstr += f"Server: {url}\n"
+            if url in engine_stats:
+                logstr += f"  Engine stats: {engine_stats[url]}\n"
+            else:
+                logstr += f"  Engine stats: No stats available\n"
+            
+            if url in request_stats:
+                logstr += f"  Request Stats: {request_stats[url]}\n"
+            else:
+                logstr += f"  Request Stats: No stats available\n"
+
+            logstr += "-" * 50 + "\n"
+        logstr += "="*50 + "\n"
+        logger.info(logstr)
+
 if __name__ == "__main__":
     args = parse_args()
     #parse_backend_urls(GLOBAL_ARGS)
 
     InitializeAll(args)
+
+    if args.log_stats:
+        threading.Thread(target=log_stats, daemon=True).start()
 
     uvicorn.run(app, host=args.host, port=args.port)

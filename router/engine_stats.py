@@ -19,6 +19,9 @@ class EngineStats:
     # Number of queuing requests
     num_queuing_requests: int = 0
 
+    # GPU cache hit rate
+    gpu_cache_hit_rate: float = 0.0
+
     @staticmethod
     def FromVllmScrape(vllm_scrape: str):
         """
@@ -35,16 +38,20 @@ class EngineStats:
         """
         num_running_reqs = 0
         num_queuing_reqs = 0
+        gpu_cache_hit_rate = 0
         for family in text_string_to_metric_families(vllm_scrape):
             for sample in family.samples:
                 if sample.name == 'vllm:num_requests_running':
                     num_running_reqs = sample.value
                 elif sample.name == 'vllm:num_requests_waiting':
                     num_queuing_reqs = sample.value
+                elif sample.name == "vllm:gpu_prefix_cache_hit_rate":
+                    gpu_cache_hit_rate = sample.value
 
         return EngineStats(
             num_running_requests=num_running_reqs,
-            num_queuing_requests=num_queuing_reqs
+            num_queuing_requests=num_queuing_reqs,
+            gpu_cache_hit_rate=gpu_cache_hit_rate
         )
 
 class EngineStatsScraper:

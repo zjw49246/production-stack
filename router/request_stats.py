@@ -2,6 +2,10 @@ from dataclasses import dataclass
 from typing import Deque, Dict
 from collections import deque
 
+from log import init_logger
+
+logger = init_logger(__name__)
+
 _global_request_stats_monitor = None
 
 @dataclass
@@ -172,17 +176,29 @@ class RequestStatsMonitor:
 
         # Calculate the request statistics
         ret = {}
-        for engine_url, records in self.raw_request_history.items():
+        
+        # Get all urls:
+        urls = set(self.raw_request_history.keys())\
+                .union(set(self.unfinished_requests.keys()))
+
+        for engine_url in urls:
             ttfts = []
             itls = []
             total_queries = 0
-            for record in records:
+
+            # Process finished requests
+            for record in self.raw_request_history.get(engine_url, []):
                 if current_time > record.creation_time >= current_time - self.sliding_window_size:
                     total_queries += 1
                 if record.complete_time > current_time:
                     continue
                 ttfts.append(record.response_time - record.creation_time)
                 itls.append((record.complete_time - record.response_time) / record.generation_tokens)
+            
+            # Process unfinished requests to include pending requests in QPS 
+            for record in self.unfinished_requests.get(engine_url, {}).values():
+                if current_time > record.creation_time >= current_time - self.sliding_window_size:
+                    total_queries += 1
 
             ret[engine_url] = RequestStats(
                 qps = total_queries / self.sliding_window_size,
