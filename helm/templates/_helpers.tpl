@@ -2,26 +2,15 @@
 Define ports for the pods
 */}}
 {{- define "chart.container-port" -}}
-{{-  default "8000" .Values.containerPort }}
-{{- end }}
-
-{{/*
-Define service name
-*/}}
-{{- define "chart.service-name" -}}
-{{-  if .Values.serviceName }}
-{{-    .Values.serviceName | lower | trim }}
-{{-  else }}
-"{{ .Release.Name }}-service"
-{{-  end }}
+{{-  default "8000" .Values.servingEngineSpec.containerPort }}
 {{- end }}
 
 {{/*
 Define service port
 */}}
 {{- define "chart.service-port" -}}
-{{-  if .Values.servicePort }}
-{{-    .Values.servicePort }}
+{{-  if .Values.servingEngineSpec.servicePort }}
+{{-    .Values.servingEngineSpec.servicePort }}
 {{-  else }}
 {{-    include "chart.container-port" . }}
 {{-  end }}
@@ -55,7 +44,7 @@ strategy:
 Define additional ports
 */}}
 {{- define "chart.extraPorts" }}
-{{-   with .Values.extraPorts }}
+{{-   with .Values.servingEngineSpec.extraPorts }}
 {{      toYaml . }}
 {{-   end }}
 {{- end }}
@@ -65,15 +54,15 @@ Define additional ports
 Define liveness et readiness probes
 */}}
 {{- define "chart.probes" -}}
-{{-   if .Values.readinessProbe  }}
+{{-   if .Values.servingEngineSpec.readinessProbe  }}
 readinessProbe:
-{{-     with .Values.readinessProbe }}
+{{-     with .Values.servingEngineSpec.readinessProbe }}
 {{-       toYaml . | nindent 2 }}
 {{-     end }}
 {{-   end }}
-{{-   if .Values.livenessProbe  }}
+{{-   if .Values.servingEngineSpec.livenessProbe  }}
 livenessProbe:
-{{-     with .Values.livenessProbe }}
+{{-     with .Values.servingEngineSpec.livenessProbe }}
 {{-       toYaml . | nindent 2 }}
 {{-     end }}
 {{-   end }}
@@ -84,16 +73,16 @@ Define resources
 */}}
 {{- define "chart.resources" -}}
 requests:
-  memory: {{ required "Value 'resources.requests.memory' must be defined !" .Values.resources.requests.memory | quote }}
-  cpu: {{ required "Value 'resources.requests.cpu' must be defined !" .Values.resources.requests.cpu | quote }}
-  {{- if and (gt (int (index .Values.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.resources.limits "nvidia.com/gpu")) 0) }}
-  nvidia.com/gpu: {{ required "Value 'resources.requests.nvidia.com/gpu' must be defined !" (index .Values.resources.requests "nvidia.com/gpu") | quote }}
+  memory: {{ required "Value 'resources.requests.memory' must be defined !" .Values.servingEngineSpec.resources.requests.memory | quote }}
+  cpu: {{ required "Value 'resources.requests.cpu' must be defined !" .Values.servingEngineSpec.resources.requests.cpu | quote }}
+  {{- if and (gt (int (index .Values.servingEngineSpec.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.servingEngineSpec.resources.limits "nvidia.com/gpu")) 0) }}
+  nvidia.com/gpu: {{ required "Value 'resources.requests.nvidia.com/gpu' must be defined !" (index .Values.servingEngineSpec.resources.requests "nvidia.com/gpu") | quote }}
   {{- end }}
 limits:
-  memory: {{ required "Value 'resources.limits.memory' must be defined !" .Values.resources.limits.memory | quote }}
-  cpu: {{ required "Value 'resources.limits.cpu' must be defined !" .Values.resources.limits.cpu | quote }}
-  {{- if and (gt (int (index .Values.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.resources.limits "nvidia.com/gpu")) 0) }}
-  nvidia.com/gpu: {{ required "Value 'resources.limits.nvidia.com/gpu' must be defined !" (index .Values.resources.limits "nvidia.com/gpu") | quote }}
+  memory: {{ required "Value 'resources.limits.memory' must be defined !" .Values.servingEngineSpec.resources.limits.memory | quote }}
+  cpu: {{ required "Value 'resources.limits.cpu' must be defined !" .Values.servingEngineSpec.resources.limits.cpu | quote }}
+  {{- if and (gt (int (index .Values.servingEngineSpec.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.servingEngineSpec.resources.limits "nvidia.com/gpu")) 0) }}
+  nvidia.com/gpu: {{ required "Value 'resources.limits.nvidia.com/gpu' must be defined !" (index .Values.servingEngineSpec.resources.limits "nvidia.com/gpu") | quote }}
   {{- end }}
 {{- end }}
 
@@ -102,23 +91,31 @@ limits:
 Define User used for the main container
 */}}
 {{- define "chart.user" }}
-{{-   if .Values.image.runAsUser  }}
+{{-   if .Values.servingEngineSpec.image.runAsUser  }}
 runAsUser: 
-{{-     with .Values.runAsUser }}
+{{-     with .Values.servingEngineSpec.runAsUser }}
 {{-       toYaml . | nindent 2 }}
 {{-     end }}
 {{-   end }}
 {{- end }}
 
 {{/*
-  Define chart labels
+  Define labels for serving engine and its service
 */}}
-{{- define "chart.labels" -}}
-{{-   with .Values.labels -}}
+{{- define "chart.engineLabels" -}}
+{{-   with .Values.servingEngineSpec.labels -}}
 {{      toYaml . }}
 {{-   end }}
 {{- end }}
 
+{{/*
+  Define labels for router and its service
+*/}}
+{{- define "chart.routerLabels" -}}
+{{-   with .Values.routerSpec.labels -}}
+{{      toYaml . }}
+{{-   end }}
+{{- end }}
 
 {{/*
   Define helper function to convert labels to a comma separated list
@@ -132,4 +129,3 @@ runAsUser:
   {{- $result = "," -}}
 {{- end -}}
 {{- end -}}
-

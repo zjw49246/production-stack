@@ -4,32 +4,37 @@ metadata:
   name: "{{ .Release.Name }}-deployment-router"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: router # TODO: change here!
+  {{- include "chart.routerLabels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: router # TODO: change here!
+    {{- include "chart.routerLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: router # TODO: change here!
+      {{- include "chart.routerLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ .Release.Name }}-router-service-account
       containers:
       - name: router-container
         image: apostacyh/lmcache-router:latest
         args: # TODO: update here
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "{{ .Values.routerSpec.containerPort }}"
           - "--service-discovery"
           - "k8s"
           - "--k8s-label-selector"
-          - "release=test"
-          - "--routing-logic"
-          - "session"
-          - "--session-key"
-          - "x-user-id"
+          - {{ include "labels.toCommaSeparatedList" .Values.servingEngineSpec.labels }}
+          {{- with .Values.routerSpec.extraArgs}}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
         resources: # TODO: update here
           requests:
             cpu: "4"
             memory: "16G"
-
+        ports:
+          - name: "router-cport"
+            containerPort: {{ .Values.routerSpec.containerPort }}

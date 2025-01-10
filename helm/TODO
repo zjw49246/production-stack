@@ -8,15 +8,17 @@ fix the problem of HF_HOME overwrite (change to extra env) -- DONE
 
 
 change the labels -- DONE
-  - different labels for vllm pod, vllm service, router pod, router service (use macro)
+  - different labels for vllm pod, vllm service, router pod, router service (use macro) -- DONE
 
-Simplify by removing configurations -- DONE
+Simplify by removing configurations 
+- simplify configuration for readiness and liveness probe
+- remove the autoscaling part (will be done after prometheus integration)
 
 Add router support
 - Role binding -- DONE
 - router docker image build -- DONE
-- add configuration items for router in helm chart
-- add service for router
+- add configuration items for router in helm chart -- DONE
+- add service for router -- DONE
 - health check of the router
 
 # Potential problems

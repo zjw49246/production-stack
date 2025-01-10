@@ -4,31 +4,31 @@ metadata:
   name: "{{ .Release.Name }}-deployment-vllm"
   namespace: {{ .Release.Namespace }}
   labels:
-  {{- include "chart.labels" . | nindent 4 }}
+  {{- include "chart.engineLabels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.servingEngineSpec.replicaCount }}
   {{- include "chart.strategy" . | nindent 2 }}
   selector:
     matchLabels:
-    {{- include "chart.labels" . | nindent 6 }}
+    {{- include "chart.engineLabels" . | nindent 6 }}
   progressDeadlineSeconds: 1200
   template:
     metadata:
       labels:
-      {{- include "chart.labels" . | nindent 8 }}
+      {{- include "chart.engineLabels" . | nindent 8 }}
     spec:
       containers:
         - name: "vllm"
-          image: "{{ required "Required value 'image.repository' must be defined !" .Values.image.repository }}:{{ required "Required value 'image.tag' must be defined !" .Values.image.tag }}"
-          {{- if .Values.image.command }}
+          image: "{{ required "Required value 'image.repository' must be defined !" .Values.servingEngineSpec.image.repository }}:{{ required "Required value 'image.tag' must be defined !" .Values.servingEngineSpec.image.tag }}"
+          {{- if .Values.servingEngineSpec.image.command }}
           command :
-            {{- with .Values.image.command }}
+            {{- with .Values.servingEngineSpec.image.command }}
             {{- toYaml . | nindent 10 }}
             {{- end }}
           {{- end }}
           securityContext:
-            {{- if .Values.image.securityContext }}
-              {{- with .Values.image.securityContext }}
+            {{- if .Values.servingEngineSpec.image.securityContext }}
+              {{- with .Values.servingEngineSpec.image.securityContext }}
               {{- toYaml . | nindent 12 }}
               {{- end }}
             {{- else }}
@@ -36,19 +36,19 @@ spec:
               {{- include "chart.user" . | indent 12 }}
             {{- end }}
           imagePullPolicy: IfNotPresent
-          {{- if .Values.image.env }}
+          {{- if .Values.servingEngineSpec.image.env }}
           env:
           - name: HF_HOME
             value: /data
-            {{- with .Values.image.env }}
+            {{- with .Values.servingEngineSpec.image.env }}
             {{- toYaml . | nindent 10 }}
             {{- end }}
           {{- else }}
           env: []
           {{- end }}
-          {{- if .Values.configs }}
+          {{- if .Values.servingEngineSpec.configs }}
           envFrom:
-            {{- if .Values.configs }}
+            {{- if .Values.servingEngineSpec.configs }}
             - configMapRef:
                 name: "{{ .Release.Name }}-configs"
             {{- end }}
@@ -67,11 +67,11 @@ spec:
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-storage-claim     
 
-      {{- with .Values.tolerations }}
+      {{- with .Values.servingEngineSpec.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and (gt (int (index .Values.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.resources.limits "nvidia.com/gpu")) 0) }}
+      {{- if and (gt (int (index .Values.servingEngineSpec.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.servingEngineSpec.resources.limits "nvidia.com/gpu")) 0) }}
       runtimeClassName: nvidia
       affinity:
         nodeAffinity:
@@ -80,7 +80,7 @@ spec:
               - matchExpressions:
                 - key: nvidia.com/gpu.product
                   operator: In
-                  {{- with .Values.gpuModels }}
+                  {{- with .Values.servingEngineSpec.gpuModels }}
                   values:
                     {{- toYaml . | nindent 20 }}
                   {{- end }}
