@@ -76,13 +76,13 @@ Define resources with a variable model spec
 requests:
   memory: {{ required "Value 'modelSpec.requestMemory' must be defined !" ($modelSpec.requestMemory | quote) }}
   cpu: {{ required "Value 'modelSpec.requestCPU' must be defined !" ($modelSpec.requestCPU | quote) }}
-  {{- if (gt (int $modelSpec.requestsGPU) 0) }}
+  {{- if (gt (int $modelSpec.requestGPU) 0) }}
   nvidia.com/gpu: {{ required "Value 'modelSpec.requestGPU' must be defined !" (index $modelSpec.requestGPU | quote) }}
   {{- end }}
 limits:
   memory: {{ required "Value 'modelSpec.requestMemory' must be defined !" ($modelSpec.requestMemory | quote) }}
   cpu: {{ required "Value 'modelSpec.requestCPU' must be defined !" ($modelSpec.requestCPU | quote) }}
-  {{- if (gt (int $modelSpec.requestsGPU) 0) }}
+  {{- if (gt (int $modelSpec.requestGPU) 0) }}
   nvidia.com/gpu: {{ required "Value 'modelSpec.requestGPU' must be defined !" (index $modelSpec.requestGPU | quote) }}
   {{- end }}
 {{- end }}
