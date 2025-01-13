@@ -4,57 +4,49 @@
 
 # -- Serving engine configuratoon
 servingEngineSpec:
-  # -- Type of gpu used
-  gpuModels:
-    - "NVIDIA-RTX-A6000"
-
   labels:
     environment: "test"
     release: "test"
 
-  # Docker image and its start command line
-  image:
-    # -- Image repository
-    repository: "vllm/vllm-openai"
-    # -- Image tag
-    tag: "latest"
-    # -- Container launch command
-    command: ["vllm", "serve", "facebook/opt-125m", "--dtype", "bfloat16", "--host", "0.0.0.0", "--port", "8000"]
-    # Optional: env (e.g., for HF_TOKEN)
-    env: []
-  
+  modelSpec: []
+  #- name: "opt125m"
+  #  # -- Type of gpu used
+  #  gpuModels:
+  #    - "NVIDIA-RTX-A6000"
+
+  #  # -- Number of replicas
+  #  replicaCount: 1
+
+  #  # Docker image and its start command line
+  #  image:
+  #    # -- Image repository
+  #    repository: "vllm/vllm-openai"
+  #    # -- Image tag
+  #    tag: "latest"
+  #    # -- Container launch command
+  #    command: ["vllm", "serve", "facebook/opt-125m", "--dtype", "bfloat16", "--host", "0.0.0.0", "--port", "8000"]
+  #    # Optional: env (e.g., for HF_TOKEN)
+  #    # Note: HF_HOME is set to /data by-default, so don't need to add it here
+  #    env: []
+  #
+  #
+  #  # -- Resource configuration
+  #  requestCPU: 4
+  #  requestMemory: "16Gi"
+  #  requestGPU: 1
+  #
+  #  # -- PVC configuration
+  #  pvcStorage: "50Gi"
+  #  pvcMatchLabels:
+  #    type: "opt125m"
   
   # -- Container port
   containerPort: 8000
   # -- Service port
   servicePort: 80
   
-  # -- Number of replicas
-  replicaCount: 1
-  
-  # -- Resource configuration
-  resources:
-    requests:
-      # -- Number of CPUs
-      cpu: 4
-      # -- CPU memory configuration
-      memory: 16Gi
-      # -- Number of gpus used
-      nvidia.com/gpu: 1
-    limits:
-      # -- Number of CPUs
-      cpu: 4
-      # -- CPU memory configuration
-      memory: 16Gi
-      # -- Number of gpus used
-      nvidia.com/gpu: 1
-  
-  
   # -- Set other environment variables from config map
   configs: {}
-  
-  # Storage Size of the PVC
-  pvcStorage: "50Gi"
   
   # -- Readiness probe configuration
   startupProbe:

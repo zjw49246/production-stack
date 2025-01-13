@@ -22,9 +22,12 @@ Add router support
 - add service for router -- DONE
 - health check of the router
 
-Add observability stack
 
 Add multi-models support
+- simplify resource configuration
+
+Add observability stack
+
 
 Add configuration options after deployments
 

@@ -69,35 +69,24 @@ livenessProbe:
 {{- end }}
 
 {{/*
-Define resources
+Define resources with a variable model spec
 */}}
 {{- define "chart.resources" -}}
+{{- $modelSpec := . -}}
 requests:
-  memory: {{ required "Value 'resources.requests.memory' must be defined !" .Values.servingEngineSpec.resources.requests.memory | quote }}
-  cpu: {{ required "Value 'resources.requests.cpu' must be defined !" .Values.servingEngineSpec.resources.requests.cpu | quote }}
-  {{- if and (gt (int (index .Values.servingEngineSpec.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.servingEngineSpec.resources.limits "nvidia.com/gpu")) 0) }}
-  nvidia.com/gpu: {{ required "Value 'resources.requests.nvidia.com/gpu' must be defined !" (index .Values.servingEngineSpec.resources.requests "nvidia.com/gpu") | quote }}
+  memory: {{ required "Value 'modelSpec.requestMemory' must be defined !" ($modelSpec.requestMemory | quote) }}
+  cpu: {{ required "Value 'modelSpec.requestCPU' must be defined !" ($modelSpec.requestCPU | quote) }}
+  {{- if (gt (int $modelSpec.requestsGPU) 0) }}
+  nvidia.com/gpu: {{ required "Value 'modelSpec.requestGPU' must be defined !" (index $modelSpec.requestGPU | quote) }}
   {{- end }}
 limits:
-  memory: {{ required "Value 'resources.limits.memory' must be defined !" .Values.servingEngineSpec.resources.limits.memory | quote }}
-  cpu: {{ required "Value 'resources.limits.cpu' must be defined !" .Values.servingEngineSpec.resources.limits.cpu | quote }}
-  {{- if and (gt (int (index .Values.servingEngineSpec.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.servingEngineSpec.resources.limits "nvidia.com/gpu")) 0) }}
-  nvidia.com/gpu: {{ required "Value 'resources.limits.nvidia.com/gpu' must be defined !" (index .Values.servingEngineSpec.resources.limits "nvidia.com/gpu") | quote }}
+  memory: {{ required "Value 'modelSpec.requestMemory' must be defined !" ($modelSpec.requestMemory | quote) }}
+  cpu: {{ required "Value 'modelSpec.requestCPU' must be defined !" ($modelSpec.requestCPU | quote) }}
+  {{- if (gt (int $modelSpec.requestsGPU) 0) }}
+  nvidia.com/gpu: {{ required "Value 'modelSpec.requestGPU' must be defined !" (index $modelSpec.requestGPU | quote) }}
   {{- end }}
 {{- end }}
 
-
-{{/*
-Define User used for the main container
-*/}}
-{{- define "chart.user" }}
-{{-   if .Values.servingEngineSpec.image.runAsUser  }}
-runAsUser: 
-{{-     with .Values.servingEngineSpec.runAsUser }}
-{{-       toYaml . | nindent 2 }}
-{{-     end }}
-{{-   end }}
-{{- end }}
 
 {{/*
   Define labels for serving engine and its service

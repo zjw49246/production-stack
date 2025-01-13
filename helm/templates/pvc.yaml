@@ -1,11 +1,21 @@
+{{- range $modelSpec := .Values.servingEngineSpec.modelSpec }}
+{{- with $ -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "{{ .Release.Name }}-storage-claim"
+  name: "{{ .Release.Name }}-{{$modelSpec.name}}-storage-claim"
   namespace: {{ .Release.Namespace }}
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: {{ .Values.servingEngineSpec.pvcStorage }}
+      storage: {{ $modelSpec.pvcStorage }}
+  {{- if not (empty $modelSpec.pvcMatchLabels) }}
+  selector:
+    matchLabels:
+      {{- toYaml $modelSpec.pvcMatchLabels | nindent 8 }}
+  {{- end }}
+{{- end }}
+---
+{{- end }}
