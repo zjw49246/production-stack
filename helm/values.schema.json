@@ -128,7 +128,7 @@
                 "pvcStorage": {
                     "type": "string"
                 },
-                "readinessProbe": {
+                "startupProbe": {
                     "type": "object",
                     "properties": {
                         "initialDelaySeconds": {
@@ -223,11 +223,11 @@
                 "image",
                 "labels",
                 "livenessProbe",
-                "maxUnavailablePodDisruptionBudget",
-                "readinessProbe",
+                "startupProbe",
                 "replicaCount",
                 "resources",
-                "servicePort"
+                "servicePort",
+                "maxUnavailablePodDisruptionBudget"
             ]
         }
     },

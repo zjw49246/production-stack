@@ -48,10 +48,8 @@ spec:
           {{- end }}
           {{- if .Values.servingEngineSpec.configs }}
           envFrom:
-            {{- if .Values.servingEngineSpec.configs }}
             - configMapRef:
                 name: "{{ .Release.Name }}-configs"
-            {{- end }}
           {{- end }}          
           ports:
             - name: {{ include "chart.container-port-name" . }}
@@ -67,10 +65,13 @@ spec:
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-storage-claim     
 
-      {{- with .Values.servingEngineSpec.tolerations }}
+      {{- if .Values.servingEngineSpec.tolerations }}
+      {{-   with .Values.servingEngineSpec.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
+        {{-   toYaml . | nindent 8 }}
+      {{-   end }}
       {{- end }}
+
       {{- if and (gt (int (index .Values.servingEngineSpec.resources.requests "nvidia.com/gpu")) 0) (gt (int (index .Values.servingEngineSpec.resources.limits "nvidia.com/gpu")) 0) }}
       runtimeClassName: nvidia
       affinity:

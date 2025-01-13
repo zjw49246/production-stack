@@ -10,9 +10,10 @@ fix the problem of HF_HOME overwrite (change to extra env) -- DONE
 change the labels -- DONE
   - different labels for vllm pod, vllm service, router pod, router service (use macro) -- DONE
 
+
 Simplify by removing configurations 
-- simplify configuration for readiness and liveness probe
-- remove the autoscaling part (will be done after prometheus integration)
+- simplify configuration for readiness and liveness probe -- DONE
+- remove the autoscaling part (will be done after prometheus integration) -- DONE
 
 Add router support
 - Role binding -- DONE
@@ -20,6 +21,14 @@ Add router support
 - add configuration items for router in helm chart -- DONE
 - add service for router -- DONE
 - health check of the router
+
+Add observability stack
+
+Add multi-models support
+
+Add configuration options after deployments
+
+Add lint yaml
 
 # Potential problems
 PVC is ReadWriteMany, need to think about what will happen if the number of nodes > 1
