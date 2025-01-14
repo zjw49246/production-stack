@@ -2,26 +2,34 @@ from typing import List, Dict, Optional
 import threading
 import abc
 import enum
+import time
+import requests
 from kubernetes import client, config, watch
+from dataclasses import dataclass
 
 from log import init_logger
 logger = init_logger(__name__)
 
 _global_service_discovery: "Optional[ServiceDiscovery]" = None
 
-def check_pod_ready(container_statuses):
-    if not container_statuses:
-        return False
-    ready_count = sum(1 for status in container_statuses if status.ready)
-    return ready_count == len(container_statuses)
-
 class ServiceDiscoveryType(enum.Enum):
     STATIC = "static"
     K8S = "k8s"
 
+@dataclass
+class EndpointInfo:
+    # Endpoint's url
+    url: str
+
+    # Model name
+    model_name: str
+
+    # Added timestamp
+    added_timestamp: float
+
 class ServiceDiscovery(metaclass = abc.ABCMeta):
     @abc.abstractmethod
-    def get_engine_urls(self) -> List[str]:
+    def get_endpoint_info(self) -> List[EndpointInfo]:
         """
         Get the URLs of the serving engines that are available for
         querying.
@@ -31,12 +39,25 @@ class ServiceDiscovery(metaclass = abc.ABCMeta):
         """
         pass
 
+    def get_health(self) -> bool:
+        """
+        Check if the service discovery module is healthy.
+
+        Returns:
+            True if the service discovery module is healthy, False otherwise
+        """
+        return True
+
 
 class StaticServiceDiscovery(ServiceDiscovery):
-    def __init__(self, urls: List[str]):
+    def __init__(self, urls: List[str], models: List[str]):
+        assert len(urls) == len(models), \
+                "URLs and models should have the same length"
         self.urls = urls
+        self.models = models
+        self.added_timestamp = int(time.time())
 
-    def get_engine_urls(self) -> List[str]:
+    def get_endpoint_info(self) -> List[EndpointInfo]:
         """
         Get the URLs of the serving engines that are available for
         querying.
@@ -44,7 +65,8 @@ class StaticServiceDiscovery(ServiceDiscovery):
         Returns:
             a list of engine URLs
         """
-        return self.urls
+        return [EndpointInfo(url, model, self.added_timestamp) \
+                for url, model in zip(self.urls, self.models)]
 
 
 class K8sServiceDiscovery(ServiceDiscovery):
@@ -64,7 +86,7 @@ class K8sServiceDiscovery(ServiceDiscovery):
         """
         self.namespace = namespace
         self.port = port
-        self.available_engines: Dict[str, str] = {}
+        self.available_engines: Dict[str, EndpointInfo] = {}
         self.available_engines_lock = threading.Lock()
         self.label_selector = label_selector
 
@@ -83,6 +105,40 @@ class K8sServiceDiscovery(ServiceDiscovery):
                 daemon=True)
         self.watcher_thread.start()
 
+    @staticmethod
+    def _check_pod_ready(container_statuses):
+        """
+        Check if all containers in the pod are ready by reading the 
+        k8s container statuses.
+        """
+        if not container_statuses:
+            return False
+        ready_count = sum(1 for status in container_statuses if status.ready)
+        return ready_count == len(container_statuses)
+
+    def _get_model_name(self, pod_ip) -> Optional[str]:
+        """
+        Get the model name of the serving engine pod by querying the pod's
+        '/v1/models' endpoint.
+
+        Args:
+            pod_ip: the IP address of the pod
+
+        Returns:
+            the model name of the serving engine
+        """
+        url = f"http://{pod_ip}:{self.port}/v1/models"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            model_name = response.json()["data"][0]["id"]
+        except Exception as e:
+            logger.error(f"Failed to get model name from {url}: {e}")
+            return None
+
+        return model_name
+
+
     def _watch_engines(self):
         # TODO (ApostaC): Add error handling
 
@@ -95,14 +151,23 @@ class K8sServiceDiscovery(ServiceDiscovery):
             event_type = event["type"]
             pod_name = pod.metadata.name
             pod_ip = pod.status.pod_ip
-            is_pod_ready = check_pod_ready(pod.status.container_statuses)
-            self._on_engine_update(pod_name, pod_ip, event_type, is_pod_ready)
+            is_pod_ready = self._check_pod_ready(pod.status.container_statuses)
+            if is_pod_ready:
+                model_name = self._get_model_name(pod_ip)
+            else:
+                model_name = None
+            self._on_engine_update(pod_name, pod_ip, event_type, 
+                                   is_pod_ready, model_name)
 
-    def _add_engine(self, engine_name: str, engine_ip: str):
+    def _add_engine(self, engine_name: str, engine_ip: str, model_name: str):
         logger.info(f"Discovered new serving engine {engine_name} at "
-                    f"{engine_ip}")
+                    f"{engine_ip}, running model: {model_name}")
         with self.available_engines_lock:
-            self.available_engines[engine_name] = engine_ip
+            self.available_engines[engine_name] = EndpointInfo(
+                url=f"http://{engine_ip}:{self.port}",
+                model_name=model_name,
+                added_timestamp=int(time.time()),
+            )
 
     def _delete_engine(self, engine_name: str):
         logger.info(f"Serving engine {engine_name} is deleted")
@@ -115,6 +180,7 @@ class K8sServiceDiscovery(ServiceDiscovery):
             engine_ip: Optional[str],
             event: str,
             is_pod_ready: bool,
+            model_name: Optional[str],
         ) -> None:
         if event == "ADDED":
             if engine_ip is None:
@@ -123,7 +189,10 @@ class K8sServiceDiscovery(ServiceDiscovery):
             if not is_pod_ready:
                 return
 
-            self._add_engine(engine_name, engine_ip)
+            if model_name is None:
+                return
+
+            self._add_engine(engine_name, engine_ip, model_name)
 
         elif event == "DELETED":
             if engine_name not in self.available_engines:
@@ -135,16 +204,16 @@ class K8sServiceDiscovery(ServiceDiscovery):
             if engine_ip is None:
                 return
 
-            if is_pod_ready:
-                self._add_engine(engine_name, engine_ip)
+            if is_pod_ready and model_name is not None:
+                self._add_engine(engine_name, engine_ip, model_name)
                 return
 
-            if not is_pod_ready and \
+            if (not is_pod_ready or model_name is None) and \
                     engine_name in self.available_engines:
                 self._delete_engine(engine_name)
                 return 
 
-    def get_engine_urls(self) -> List[str]:
+    def get_endpoint_info(self) -> List[EndpointInfo]:
         """
         Get the URLs of the serving engines that are available for
         querying.
@@ -153,9 +222,16 @@ class K8sServiceDiscovery(ServiceDiscovery):
             a list of engine URLs
         """
         with self.available_engines_lock:
-            return [
-                f"http://{ip}:{self.port}" for ip in self.available_engines.values()
-            ]
+            return list(self.available_engines.values())
+
+    def get_health(self) -> bool:
+        """
+        Check if the service discovery module is healthy.
+
+        Returns:
+            True if the service discovery module is healthy, False otherwise
+        """
+        return self.watcher_thread.is_alive()
 
 def InitializeServiceDiscovery(
         service_discovery_type: ServiceDiscoveryType,
@@ -216,6 +292,6 @@ if __name__ == "__main__":
     import time
     time.sleep(1)
     while True:
-        urls = k8s_sd.get_engine_urls()
+        urls = k8s_sd.get_endpoint_info()
         print(urls)
         time.sleep(2)

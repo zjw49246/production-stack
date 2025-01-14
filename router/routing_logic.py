@@ -3,6 +3,7 @@ import abc
 import enum
 from fastapi import Request
 
+from service_discovery import EndpointInfo
 from engine_stats import EngineStats
 from request_stats import RequestStats
 
@@ -18,7 +19,7 @@ class RoutingInterface(metaclass = abc.ABCMeta):
     @abc.abstractmethod
     def route_request(
             self, 
-            engine_urls: List[str],
+            endpoints: List[EndpointInfo],
             engine_stats: Dict[str, EngineStats],
             request_stats: Dict[str, RequestStats],
             request: Request) -> str:
@@ -26,7 +27,7 @@ class RoutingInterface(metaclass = abc.ABCMeta):
         Route the request to the appropriate engine URL
 
         Args:
-            engine_urls (List[str]): The list of engine URLs
+            endpoints (List[EndpointInfo]): The list of engine URLs
             engine_stats (Dict[str, EngineStats]): The engine stats indicating
                 the 'physical' load of each engine
             request_stats (Dict[str, RequestStats]): The request stats
@@ -36,14 +37,14 @@ class RoutingInterface(metaclass = abc.ABCMeta):
         raise NotImplementedError
 
 class RoundRobinRouter(RoutingInterface):
-    # TODO (ApostaC): when available engines in the engine_urls changes, the
+    # TODO (ApostaC): when available engines in the endpoints changes, the
     # algorithm may not be "perfectly" round-robin. 
     def __init__(self):
         self.req_id = 0
 
     def route_request(
             self, 
-            engine_urls: List[str],
+            endpoints: List[EndpointInfo],
             engine_stats: Dict[str, EngineStats],
             request_stats: Dict[str, RequestStats],
             request: Request) -> str:
@@ -52,15 +53,16 @@ class RoundRobinRouter(RoutingInterface):
         round-robin algorithm
 
         Args:
-            engine_urls (List[str]): The list of engine URLs
+            endpoints (List[EndpointInfo]): The list of engine URLs
             engine_stats (Dict[str, EngineStats]): The engine stats indicating
                 the 'physical' load of each engine
             request_stats (Dict[str, RequestStats]): The request stats
                 indicating the request-level performance of each engine
             request (Request): The incoming request
         """
-        len_engines = len(engine_urls)
-        ret = sorted(engine_urls)[self.req_id % len_engines]
+        len_engines = len(endpoints)
+        ret = sorted(endpoints, 
+                     key = lambda e: e.url)[self.req_id % len_engines]
         self.req_id += 1
         return ret
 
@@ -74,7 +76,7 @@ class SessionRouter(RoutingInterface):
         self.session_key = session_key
 
     def _qps_routing(self, 
-                     engine_urls: List[str], 
+                     endpoints: List[EndpointInfo], 
                      request_stats: Dict[str, RequestStats]) -> str:
         """
         Route the request to the appropriate engine URL based on the QPS of
@@ -86,7 +88,8 @@ class SessionRouter(RoutingInterface):
         """
         lowest_qps = float("inf")
         ret = None
-        for url in engine_urls:
+        for info in endpoints:
+            url = info.url
             if url not in request_stats:
                 return url # This engine does not have any requests
             request_stat = request_stats[url]
@@ -97,7 +100,7 @@ class SessionRouter(RoutingInterface):
 
     def route_request(
             self, 
-            engine_urls: List[str],
+            endpoints: List[EndpointInfo],
             engine_stats: Dict[str, EngineStats],
             request_stats: Dict[str, RequestStats],
             request: Request) -> str:
@@ -108,7 +111,7 @@ class SessionRouter(RoutingInterface):
         with lowest qps
 
         Args:
-            engine_urls (List[str]): The list of engine URLs
+            endpoints (List[EndpointInfo]): The list of engine URLs
             engine_stats (Dict[str, EngineStats]): The engine stats indicating
                 the 'physical' load of each engine
             request_stats (Dict[str, RequestStats]): The request stats
@@ -119,7 +122,7 @@ class SessionRouter(RoutingInterface):
         logger.debug(f"Got session id: {session_id}")
 
         if session_id is None or session_id not in self.key_to_server_id:
-            url = self._qps_routing(engine_urls, request_stats)
+            url = self._qps_routing(endpoints, request_stats)
             if session_id is not None: 
                 self.key_to_server_id[session_id] = url
         else:

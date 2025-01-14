@@ -78,8 +78,15 @@ class EngineStatsScraper:
         self.scrape_thread.start()
 
     def _scrape_one_endpoint(self, url: str):
+        """Scrape the metrics and model information from a single 
+        serving engine
+
+        Args:
+            url (str): The URL of the serving engine 
+                       (does not contain endpoint)
+        """
         try:
-            response = requests.get(url)
+            response = requests.get(url + "/metrics")
             response.raise_for_status()
             engine_stats = EngineStats.FromVllmScrape(response.text)
         except Exception as e:
@@ -89,10 +96,11 @@ class EngineStatsScraper:
 
     def _scrape_metrics(self):
         collected_engine_stats = {}
-        urls = self.service_discovery.get_engine_urls()
-        logger.info(f"Scraping metrics from {len(urls)} serving engine(s)")
-        for url in urls:
-            engine_stats = self._scrape_one_endpoint(url + "/metrics")
+        endpoints = self.service_discovery.get_endpoint_info()
+        logger.info(f"Scraping metrics from {len(endpoints)} serving engine(s)")
+        for info in endpoints:
+            url = info.url
+            engine_stats = self._scrape_one_endpoint(url)
             if engine_stats:
                 collected_engine_stats[url] = engine_stats
         
@@ -113,6 +121,16 @@ class EngineStatsScraper:
     def get_engine_stats(self) -> Dict[str, EngineStats]:
         with self.engine_stats_lock:
             return self.engine_stats.copy()
+
+    def get_health(self) -> bool:
+        """
+        Check if the EngineStatsScraper is healthy
+
+        Returns:
+            bool: True if the EngineStatsScraper is healthy, 
+                False otherwise
+        """
+        return self.scrape_thread.is_alive()
 
 def InitializeEngineStatsScraper(
     scrape_interval: float

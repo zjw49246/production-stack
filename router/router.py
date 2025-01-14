@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import StreamingResponse, JSONResponse, Response
 import time
 import threading
 import httpx
@@ -12,17 +12,19 @@ from routing_logic import InitializeRoutingLogic, RoutingLogic
 from service_discovery import InitializeServiceDiscovery, GetServiceDiscovery, ServiceDiscoveryType
 from request_stats import InitializeRequestStatsMonitor, GetRequestStatsMonitor
 from engine_stats import InitializeEngineStatsScraper, GetEngineStatsScraper
+from protocols import ErrorResponse, ModelCard, ModelList
 
 app = FastAPI()
 logger = logging.getLogger("uvicorn")
 
 GLOBAL_ROUTER = None
 REQUEST_ID = 0
+STACK_VERSION = "0.0.1"
 
 # TODO: better request id system
 # TODO: monitor the num tokens by adding the 'include_usage: True' to the request
 
-async def process_request(request, backend_url, request_id, endpoint):
+async def process_request(method, header, body, backend_url, request_id, endpoint):
     """
     Async generator to stream data from the backend server to the client.
     """
@@ -35,10 +37,10 @@ async def process_request(request, backend_url, request_id, endpoint):
 
     client = httpx.AsyncClient()
     async with client.stream(
-        method=request.method,
+        method=method,
         url=backend_url + endpoint, 
-        headers=dict(request.headers),
-        content=await request.body(),
+        headers=dict(header),
+        content=body,
         timeout=None,
     ) as backend_response:
 
@@ -64,20 +66,35 @@ async def process_request(request, backend_url, request_id, endpoint):
 @app.post("/chat/completions")
 async def route_chat_completition(request: Request):
     """
-    Route the incoming request to the backend server and stream the response back to the client.
+    Route the incoming request to the backend server and stream the response 
+    back to the client.
     """
     global REQUEST_ID
     request_id = str(REQUEST_ID)
     REQUEST_ID += 1
 
-    engine_urls = GetServiceDiscovery().get_engine_urls()
+    # TODO (ApostaC): merge two awaits into one
+    request_body = await request.body()
+    request_json = await request.json()
+    requested_model = request_json.get("model", None)
+    if requested_model is None:
+        return JSONResponse(
+                status_code=400,
+                content={"error": "Invalid request: missing 'model' in request body."})
+
+    endpoints = GetServiceDiscovery().get_endpoint_info()
     engine_stats = GetEngineStatsScraper().get_engine_stats()
     request_stats = GetRequestStatsMonitor().get_request_stats(time.time())
-    #logger.info(f"Processing request {request_id}")
-    #logger.info(f"Request stats: {request_stats}")
+
+    endpoints = list(filter(lambda x: x.model_name == requested_model, 
+                            endpoints))
+    if len(endpoints) == 0:
+        return JSONResponse(
+                status_code=400,
+                content={"error": f"Model {requested_model} not found."})
 
     server_url = GLOBAL_ROUTER.route_request(
-            engine_urls,
+            endpoints,
             engine_stats,
             request_stats,
             request)
@@ -85,7 +102,9 @@ async def route_chat_completition(request: Request):
 
     logger.info(f"Routing request {REQUEST_ID} to {server_url}")
     stream_generator = process_request(
-            request, 
+            request.method, 
+            request.headers,
+            request_body,
             server_url, 
             request_id,
             endpoint = "/v1/chat/completions")
@@ -98,6 +117,45 @@ async def route_chat_completition(request: Request):
             headers={key: value for key, value in headers.items() if key.lower() not in {"transfer-encoding"}},
         )
 
+
+@app.get("/version")
+async def show_version():
+    ver = {"version": STACK_VERSION}
+    return JSONResponse(content=ver)
+
+
+@app.get("/models")
+async def show_models():
+    endpoints = GetServiceDiscovery().get_endpoint_info()
+    existing_models = set()
+    model_cards = []
+    for endpoint in endpoints:
+        if endpoint.model_name in existing_models:
+            continue
+        model_card = ModelCard(
+            id = endpoint.model_name,
+            object = "model",
+            created = endpoint.added_timestamp, 
+            owned_by = "vllm",
+        )
+        model_cards.append(model_card)
+        existing_models.add(endpoint.model_name)
+
+    model_list = ModelList(data = model_cards)
+    return JSONResponse(content=model_list.model_dump())
+
+@app.get("/health")
+async def health() -> Response:
+    """Health check. check the health of the threads"""
+    if not GetServiceDiscovery().get_health():
+        return JSONResponse(
+                content = {"status": "Service discovery module is down."},
+                status_code = 503)
+    if not GetEngineStatsScraper().get_health():
+        return JSONResponse(
+                content = {"status": "Engine stats scraper is down."},
+                status_code = 503)
+    return Response(status_code=200)
 
 def validate_args(args):
     if args.service_discovery not in ["static", "k8s"]:
@@ -194,10 +252,11 @@ def log_stats():
     while True:
         time.sleep(10)
         logstr = "\n" + "="*50 + "\n"
-        server_urls = GetServiceDiscovery().get_engine_urls()
+        endpoints = GetServiceDiscovery().get_endpoint_info()
         engine_stats = GetEngineStatsScraper().get_engine_stats()
         request_stats = GetRequestStatsMonitor().get_request_stats(time.time())
-        for url in server_urls:
+        for endpoint in endpoints:
+            url = endpoint.url
             logstr += f"Server: {url}\n"
             if url in engine_stats:
                 logstr += f"  Engine stats: {engine_stats[url]}\n"
