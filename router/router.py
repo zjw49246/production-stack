@@ -161,6 +161,12 @@ def validate_args(args):
     if args.service_discovery not in ["static", "k8s"]:
         raise ValueError(f"Invalid service discovery type: {args.service_discovery}")
 
+    if args.service_discovery == "static":
+        if args.static_backends is None:
+            raise ValueError("Static backends must be provided when using static service discovery.")
+        if args.static_models is None:
+            raise ValueError("Static models must be provided when using static service discovery.")
+
     if args.routing_logic not in ["roundrobin", "session"]:
         raise ValueError(f"Invalid routing logic: {args.routing_logic}")
 
@@ -184,6 +190,9 @@ def parse_args():
     parser.add_argument("--static-backends", type=str, default=None, 
                         help="The urls of static backends, separeted by comma."
                              "E.g., http://localhost:8000,http://localhost:8001")
+    parser.add_argument("--static-models", type=str, default=None, 
+                        help="The models of static backends, separeted by comma."
+                             "E.g., model1,model2")
     parser.add_argument("--k8s-port", type=int, default=8000, 
                         help="The port of vLLM processes when using K8s service discovery.")
     parser.add_argument("--k8s-namespace", type=str, default="default",
@@ -210,8 +219,8 @@ def parse_args():
     validate_args(args)
     return args
 
-def parse_backend_urls(args):
-    urls = args.backends.split(",")
+def parse_static_urls(args):
+    urls = args.static_backends.split(",")
     backend_urls = []
     for url in urls:
         if validate_url(url):
@@ -220,10 +229,15 @@ def parse_backend_urls(args):
             logger.warning(f"Skipping invalid url: {url}")
     return backend_urls
 
+def parse_static_model_names(args):
+    models = args.static_models.split(",")
+    return models
+
 def InitializeAll(args):
     if args.service_discovery == "static":
         InitializeServiceDiscovery(ServiceDiscoveryType.STATIC, 
-                                   backend_urls = parse_backend_urls(args))
+                                   urls = parse_static_urls(args),
+                                   models = parse_static_model_names(args))
     elif args.service_discovery == "k8s":
         InitializeServiceDiscovery(ServiceDiscoveryType.K8S, 
                                    namespace = args.k8s_namespace, 
@@ -274,7 +288,6 @@ def log_stats():
 
 if __name__ == "__main__":
     args = parse_args()
-    #parse_backend_urls(GLOBAL_ARGS)
 
     InitializeAll(args)
 

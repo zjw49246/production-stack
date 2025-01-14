@@ -28,6 +28,8 @@ from vllm.entrypoints.openai.protocol import (
 app = FastAPI()
 REQUEST_ID = 0
 GLOBAL_ARGS = None
+MODEL_NAME = "fake_model_name"
+NUM_RUNNING_REQUESTS = 0
 
 async def generate_fake_response(
         request_id: str,
@@ -35,6 +37,9 @@ async def generate_fake_response(
         num_tokens: int,
         tokens_per_sec: float,
     ):
+    global NUM_RUNNING_REQUESTS
+    
+    NUM_RUNNING_REQUESTS += 1
     created_time = int(time.time())
     chunk_object_type: Final = "chat.completion.chunk"
 
@@ -90,16 +95,33 @@ async def generate_fake_response(
     yield f"data: {data}\n\n"
     yield "data: [DONE]\n\n"
 
+    NUM_RUNNING_REQUESTS -= 1
+
 @app.post("/v1/chat/completions")
 async def chat_completions(request: ChatCompletionRequest, raw_request: Request):
-    global REQUEST_ID
+    global REQUEST_ID, MODEL_NAME
     REQUEST_ID += 1
     request_id = f"fake_request_id_{REQUEST_ID}"
-    model_name = "fake_model_name"
-    num_tokens = request.max_completion_tokens if request.max_completion_tokens else 100
+    model_name = MODEL_NAME
+    num_tokens = request.max_tokens if request.max_tokens else 100
     tokens_per_sec = GLOBAL_ARGS.speed
     return StreamingResponse(generate_fake_response(request_id, model_name, num_tokens, tokens_per_sec),
                              media_type="text/event-stream")
+
+@app.get("/metrics")
+async def metrics():
+    global NUM_RUNNING_REQUESTS, MODEL_NAME
+    content = f"""# HELP vllm:num_requests_running Number of requests currently running on GPU.
+# TYPE vllm:num_requests_running gauge
+vllm:num_requests_running{{model_name="{MODEL_NAME}"}} {NUM_RUNNING_REQUESTS}
+# HELP vllm:num_requests_swapped Number of requests swapped to CPU.
+# TYPE vllm:num_requests_swapped gauge
+vllm:num_requests_swapped{{model_name="{MODEL_NAME}"}} 0.0
+# HELP vllm:num_requests_waiting Number of requests waiting to be processed.
+# TYPE vllm:num_requests_waiting gauge
+vllm:num_requests_waiting{{model_name="{MODEL_NAME}"}} 0.0"""
+
+    return Response(content=content, media_type="text/plain")
 
 def parse_args():
     parser = argparse.ArgumentParser()
