@@ -10,7 +10,7 @@ servingEngineSpec:
 
   modelSpec: []
   #- name: "opt125m"
-  #  # -- Type of gpu used
+  #  # -- (Optional) Specify type of GPU to use
   #  gpuModels:
   #    - "NVIDIA-RTX-A6000"
 

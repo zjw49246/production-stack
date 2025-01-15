@@ -69,6 +69,7 @@ spec:
 
       {{- if (gt (int $modelSpec.requestGPU ) 0) }}
       runtimeClassName: nvidia
+      {{- if $modelSpec.gpuModels }}
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -80,6 +81,7 @@ spec:
                   values:
                     {{- toYaml . | nindent 20 }}
                   {{- end }}
+      {{- end }} 
       {{- end }} 
 {{- end }}
 ---
