@@ -64,7 +64,7 @@ class RoundRobinRouter(RoutingInterface):
         ret = sorted(endpoints, 
                      key = lambda e: e.url)[self.req_id % len_engines]
         self.req_id += 1
-        return ret
+        return ret.url
 
 class SessionRouter(RoutingInterface):
     """

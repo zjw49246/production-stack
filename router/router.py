@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse, Response
 import time
@@ -13,29 +14,39 @@ from service_discovery import InitializeServiceDiscovery, GetServiceDiscovery, S
 from request_stats import InitializeRequestStatsMonitor, GetRequestStatsMonitor
 from engine_stats import InitializeEngineStatsScraper, GetEngineStatsScraper
 from protocols import ErrorResponse, ModelCard, ModelList
+from httpx_client import HTTPXClientWrapper
 
-app = FastAPI()
+httpx_client_wrapper = HTTPXClientWrapper()
 logger = logging.getLogger("uvicorn")
 
 GLOBAL_ROUTER = None
 REQUEST_ID = 0
 STACK_VERSION = "0.0.1"
 
-# TODO: better request id system
-# TODO: monitor the num tokens by adding the 'include_usage: True' to the request
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    httpx_client_wrapper.start()
+    yield
+    await httpx_client_wrapper.stop()
 
-async def process_request(method, header, body, backend_url, request_id, endpoint):
+app = FastAPI(lifespan = lifespan)
+
+# TODO: better request id system
+
+async def process_request(method, header, body, backend_url, request_id, endpoint, debug_request=None):
     """
     Async generator to stream data from the backend server to the client.
     """
+    first_token = False
+    total_len = 0
+    # Pass response headers to the client
+    start_time = time.time()
     GetRequestStatsMonitor().on_new_request(
             backend_url,
             request_id,
-            time.time())
+            start_time)
 
-    total_len = 0
-
-    client = httpx.AsyncClient()
+    client = httpx_client_wrapper()
     async with client.stream(
         method=method,
         url=backend_url + endpoint, 
@@ -44,24 +55,26 @@ async def process_request(method, header, body, backend_url, request_id, endpoin
         timeout=None,
     ) as backend_response:
 
-        # Pass response headers to the client
         yield backend_response.headers, backend_response.status_code
 
         # Stream response content
         async for chunk in backend_response.aiter_bytes():
-            GetRequestStatsMonitor().on_request_response(
-                    backend_url,
-                    request_id,
-                    time.time(),)
             total_len += len(chunk)
+            if not first_token:
+                first_token = True 
+                GetRequestStatsMonitor().on_request_response(
+                        backend_url,
+                        request_id,
+                        time.time())
             yield chunk
 
-    await client.aclose()
     GetRequestStatsMonitor().on_request_complete(
             backend_url,
             request_id,
-            time.time(),
-            0, total_len)
+            time.time())
+
+    #if debug_request:
+    #    logger.debug(f"Finished the request with request id: {debug_request.headers.get('x-request-id', None)} at {time.time()}")
 
 @app.post("/chat/completions")
 async def route_chat_completition(request: Request):
@@ -69,6 +82,7 @@ async def route_chat_completition(request: Request):
     Route the incoming request to the backend server and stream the response 
     back to the client.
     """
+    in_router_time = time.time()
     global REQUEST_ID
     request_id = str(REQUEST_ID)
     REQUEST_ID += 1
@@ -100,7 +114,9 @@ async def route_chat_completition(request: Request):
             request)
 
 
-    logger.info(f"Routing request {REQUEST_ID} to {server_url}")
+    curr_time = time.time()
+    logger.info(f"Routing request {REQUEST_ID} to {server_url} at {curr_time}, "
+                f"process time = {curr_time - in_router_time:.4f}")
     stream_generator = process_request(
             request.method, 
             request.headers,
@@ -108,13 +124,14 @@ async def route_chat_completition(request: Request):
             server_url, 
             request_id,
             endpoint = "/v1/chat/completions")
+            #debug_request = request)
 
     headers, status_code = await anext(stream_generator)
 
     return StreamingResponse(
             stream_generator,
             status_code=status_code,
-            headers={key: value for key, value in headers.items() if key.lower() not in {"transfer-encoding"}},
+            headers={key: value for key, value in headers.items()},
         )
 
 
@@ -156,6 +173,8 @@ async def health() -> Response:
                 content = {"status": "Engine stats scraper is down."},
                 status_code = 503)
     return Response(status_code=200)
+
+
 
 def validate_args(args):
     if args.service_discovery not in ["static", "k8s"]:

@@ -16,3 +16,8 @@ sudo docker run --network host apostacyh/lmcache-router:test \
     --routing-key my_user_id \
     --backends http://<serving engine url1>/v1/chat/completions,http://<serving engine url2>/v1/chat/completions
 ```
+
+## TODO:
+- sessionId router:
+  - When a new sessionId is detected, the router will use a hash function to map the sessionId to a backend.
+  - Clean up old sessions to avoid too many sessions.
