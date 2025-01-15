@@ -37,7 +37,16 @@ async def generate_fake_response(
         num_tokens: int,
         tokens_per_sec: float,
     ):
+    async def sleep_to_target(target: float):
+        sleep_time = target - time.time()
+        if sleep_time > 0:
+            await asyncio.sleep(sleep_time)
+
+    start = time.time()
     global NUM_RUNNING_REQUESTS
+
+    if GLOBAL_ARGS.ttft > 0:
+        await asyncio.sleep(GLOBAL_ARGS.ttft)
     
     NUM_RUNNING_REQUESTS += 1
     created_time = int(time.time())
@@ -58,10 +67,12 @@ async def generate_fake_response(
             choices = [choice_data],
             model = model_name)
     data = chunk.model_dump_json(exclude_unset=True)
-
+    token_batch = 20
 
     for i in range(num_tokens):
-        await asyncio.sleep(1/tokens_per_sec)
+        if i % token_batch == 0:
+            await sleep_to_target(start + i / tokens_per_sec)
+
         text = "Hello "
         choice_data = ChatCompletionResponseStreamChoice(
             index = 0,
@@ -76,6 +87,8 @@ async def generate_fake_response(
             model = model_name)
         data = chunk.model_dump_json(exclude_unset=True)
         yield f"data: {data}\n\n"
+
+    await sleep_to_target(num_tokens / tokens_per_sec + start)
 
     choice_data = ChatCompletionResponseStreamChoice(
             index = 0,
@@ -92,16 +105,27 @@ async def generate_fake_response(
             choices = [choice_data],
             model = model_name)
 
+    chunk.usage = UsageInfo(
+            prompt_tokens=0,
+            completion_tokens=num_tokens,
+            total_tokens=num_tokens,
+        )
+
+
     yield f"data: {data}\n\n"
     yield "data: [DONE]\n\n"
 
     NUM_RUNNING_REQUESTS -= 1
+    elapsed = time.time() - start
+    thp = num_tokens / elapsed
+    print(f"Finished request with id: {request_id}, elapsed time {elapsed}, throughput {thp}")
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: ChatCompletionRequest, raw_request: Request):
     global REQUEST_ID, MODEL_NAME
     REQUEST_ID += 1
-    request_id = f"fake_request_id_{REQUEST_ID}"
+    request_id = raw_request.get('x-request-id', f"fake_request_id_{REQUEST_ID}")
+    print(f"Received request with id: {request_id} at {time.time()}")
     model_name = MODEL_NAME
     num_tokens = request.max_tokens if request.max_tokens else 100
     tokens_per_sec = GLOBAL_ARGS.speed
@@ -129,6 +153,7 @@ def parse_args():
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--max-tokens", type=int, default=100)
     parser.add_argument("--speed", type=int, default=100)
+    parser.add_argument("--ttft", type=float, default=0)
     args = parser.parse_args()
     return args
 
