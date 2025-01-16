@@ -1,4 +1,5 @@
 from typing import List, Optional, Dict
+import hashlib
 import abc
 import enum
 from fastapi import Request
@@ -121,10 +122,15 @@ class SessionRouter(RoutingInterface):
         session_id = request.headers.get(self.session_key, None)
         logger.debug(f"Got session id: {session_id}")
 
-        if session_id is None or session_id not in self.key_to_server_id:
+        if session_id is None:
             url = self._qps_routing(endpoints, request_stats)
             if session_id is not None: 
                 self.key_to_server_id[session_id] = url
+        elif session_id not in self.key_to_server_id:
+            hash_digest = hashlib.sha256(session_id.encode()).hexdigest()
+            index = int(hash_digest, 16) % len(endpoints)
+            url = endpoints[index].url
+            self.key_to_server_id[session_id] = url
         else:
             url = self.key_to_server_id[session_id]
         return url
