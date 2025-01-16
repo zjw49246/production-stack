@@ -36,6 +36,7 @@ def worker(api_key, base_url, model, qps_per_worker):
         print("Send request at ", start)
         try:
             custom_headers = {
+                'x-user-id': str(os.getpid()),  # Unique user ID for each process
                 'x-request-id': str(os.getpid()) + f"req-{request_id}",  # Unique session ID for each process
             }
             request_id += 1

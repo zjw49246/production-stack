@@ -10,7 +10,10 @@ python3 router.py --port $1 \
     --static-models "fake_model_name,fake_model_name,fake_model_name,fake_model_name" \
     --engine-stats-interval 10 \
     --log-stats \
-    --routing-logic roundrobin
+    --routing-logic session \
+    --session-key "x-user-id" 
+
+    #--routing-logic roundrobin
 
     #--routing-logic session \
     #--session-key "x-user-id" \
