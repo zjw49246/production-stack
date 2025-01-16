@@ -24,7 +24,8 @@ Add router support
 
 
 Add multi-models support
-- simplify resource configuration
+- simplify resource configuration -- DONE
+- router for multiple models -- DONE
 
 Add observability stack
 
