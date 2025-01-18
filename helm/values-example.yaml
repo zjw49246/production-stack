@@ -1,0 +1,24 @@
+servingEngineSpec:
+  modelSpec:
+  - name: "opt125m"
+    replicaCount: 2
+
+    requestCPU: 6
+    requestMemory: "16Gi"
+    requestGPU: 1
+
+    pvcStorage: "10Gi"
+
+    image:
+      # -- Image repository
+      repository: "vllm/vllm-openai"
+      # -- Image tag
+      tag: "latest"
+
+      command: ["vllm", "serve", "facebook/opt-125m", "--host", "0.0.0.0", "--port", "8000",
+                "--disable-log-requests"]
+
+routerSpec:
+  extraArgs:
+    - "--routing-logic"
+    - "roundrobin"
