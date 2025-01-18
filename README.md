@@ -2,16 +2,67 @@
 
 This project provides a reference implementation on how to build a inference stack on top of vLLM, including the following components:
 
-- **Grafana Dashboard**: Visualizes key LLM serving metrics.
 - **Helm Chart**: Deploys vLLM services in Kubernetes environments.
+- **Grafana Dashboard**: Visualizes key LLM serving metrics.
 - **Router**: Directs requests to appropriate backends based on routing keys or session IDs.
-- **Tests**: Multi-round testing framework to ensure system functionality.
+
+## Helm Chart
+
+### Prerequisites
+
+- A running Kubernetes (K8s) environment with GPU ([Tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/))
+- (Optional) PersistentVolume (PV) with model weights
+
+
+### Deployment
+
+1. Store your custom configurations in `values-customized.yaml`. Example:
+```yaml
+servingEngineSpec:
+  modelSpec:
+  - name: "opt125m"
+    replicaCount: 2
+
+    requestCPU: 6
+    requestMemory: "16Gi"
+    requestGPU: 1
+
+    pvcStorage: "10Gi"
+
+    image:
+      # -- Image repository
+      repository: "vllm/vllm-openai"
+      # -- Image tag
+      tag: "latest"
+
+      command: ["vllm", "serve", "facebook/opt-125m", "--host", "0.0.0.0", "--port", "8000",
+                "--disable-log-requests"]
+
+routerSpec:
+  extraArgs:
+    - "--routing-logic"
+    - "roundrobin"
+```
+
+3. Deploy the Helm chart:
+
+```bash
+helm install lmstack . -f values-customized.yaml
+```
+
+#### Uninstall
+
+```bash
+helm uninstall lmstack
+```
+
 
 ## Grafana Dashboard
 
 ### Features
 
 The Grafana dashboard provides the following insights:
+
 
 1. **Available vLLM Instances**: Displays the number of healthy instances.
 2. **Request Latency Distribution**: Visualizes end-to-end request latency.
@@ -21,78 +72,11 @@ The Grafana dashboard provides the following insights:
 6. **GPU KV Usage Percent**: Monitors GPU KV cache usage.
 7. **GPU KV Cache Hit Rate**: Displays the hit rate for the GPU KV cache.
 
+ <img src="https://github.com/user-attachments/assets/225feb01-ac0f-4bf9-9da3-7bf955b2aa56" alt="Grafana dashboard to monitor the deployment" width="500"/>
+
 ### Configuration
 
-- Data source: Prometheus
-- Refresh interval: Automatic
-
-## Helm Chart
-
-### Prerequisites
-
-- A running Kubernetes (K8s) environment
-- (Optional) PersistentVolume (PV) setup
-
-### Setup
-
-#### Creating a PersistentVolume (Optional)
-
-If dynamic provisioning is not enabled, you can manually create a PV:
-
-1. Replace `<SIZE OF THE PV>` and `<HOST PATH ON YOUR MACHINE>` in the following YAML file:
-
-```yaml
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: test-vllm-pv
-spec:
-  capacity:
-    storage: <SIZE OF THE PV, EX: 100Gi>
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: standard
-  hostPath:
-    path: <HOST PATH ON YOUR MACHINE>
-```
-
-2. Apply the configuration:
-
-```bash
-kubectl apply -f pv.yaml
-```
-
-#### Deployment
-
-1. Store your custom configurations in `values-customized.yaml`. Example:
-
-```yaml
-image:
-  command: ["vllm", "serve", "mistralai/Mistral-7B-Instruct-v0.2", "--host", "0.0.0.0", "--port", "8000"]
-  env:
-    - name: HF_TOKEN
-      value: <YOUR HUGGING FACE TOKEN>
-
-gpuModels:
-  - "<THE NVIDIA GPU NAME>"
-```
-
-2. Deploy the Helm chart:
-
-```bash
-helm upgrade --install test-vllm . -f values-customized.yaml
-```
-
-#### Uninstall
-
-```bash
-helm uninstall test-vllm
-```
-
-### Notes
-
-- The HF\_HOME directory is hard-coded to `/data` as the PV is mounted there.
+See the details in `observability/README.md`
 
 ## Router
 
@@ -100,34 +84,14 @@ helm uninstall test-vllm
 
 The router ensures efficient request distribution among backends. It supports:
 
-- **Routing by User ID**: Uses a `routing-key` to direct requests.
-- **Session-Based Routing** (TODO): Maps new session IDs to backends using a hash function and cleans up stale sessions.
+- Routing to endpoints that run different models
+- Exporting observability metrics for each serving engine instance, including QPS, time-to-first-token (TTFT), number of pending/running/finished requests, and uptime
+- Automatic service discovery and fault tolerance by Kubernetes API
+- Multiple different routing algorithms
+  - Round-robin routing
+  - Session-ID based routing
+  - (WIP) prefix-aware routing
 
-### Build and Run
-
-#### Build Docker Image
-
-```bash
-docker build -t apostacyh/lmcache-router:test .
-```
-
-#### Run Docker Image
-
-```bash
-sudo docker run --network host apostacyh/lmcache-router:test \
-    --host 0.0.0.0 --port 9090 \
-    --routing-key my_user_id \
-    --backends http://<serving engine url1>/v1/chat/completions,http://<serving engine url2>/v1/chat/completions
-```
-
-### TODOs
-
-- Implement session-based routing.
-- Add session cleanup logic to manage active sessions.
-
-## Tests
-
-The project includes a multi-round test framework to validate functionality across all components.
 
 ## Contributing
 
