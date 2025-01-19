@@ -1,18 +1,22 @@
 # LMStack
 
-This project provides a reference implementation on how to build a inference stack on top of vLLM, including the following components:
+
+This project provides a reference implementation on how to build an inference stack on top of vLLM, including the following components:
 
 - **Helm Chart**: Deploys vLLM services in Kubernetes environments.
-- **Router**: Directs requests to appropriate backends based on routing keys or session IDs to maximize KV cache reuse.
 - **Grafana Dashboard**: Visualizes key LLM serving metrics for monitoring.
 
+Inside the stack, there are the following key parts:
+- **Backend**: The vLLM engines that runs different LLMs
+- **Router**: Directs requests to appropriate backends based on routing keys or session IDs to maximize KV cache reuse.
+
+ <img src="https://github.com/user-attachments/assets/eecb30b1-28d9-4274-8414-f27334225b44" alt="Architecture of the stack" width="800"/>
 
 ## Helm Chart
 
 ### Prerequisites
 
 - A running Kubernetes (K8s) environment with GPUs ([Tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/))
-- (Optional) PersistentVolume (PV) with model weights
 
 
 ### Deployment
