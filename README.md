@@ -10,8 +10,7 @@ Inside the stack, there are the following key parts:
 - **Backend**: The vLLM engines that runs different LLMs
 - **Router**: Directs requests to appropriate backends based on routing keys or session IDs to maximize KV cache reuse.
 
-
- <img src="https://github.com/user-attachments/assets/c898eef4-e240-4bea-8053-ec58049f3c68" alt="Architecture of the stack" width="800"/>
+ <img src="https://github.com/user-attachments/assets/ffbdb2de-0dce-46cf-bc07-c4057b35ad7f" alt="Architecture of the stack" width="800"/>
 
 ## Helm Chart
 
