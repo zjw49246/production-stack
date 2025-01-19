@@ -3,14 +3,15 @@
 This project provides a reference implementation on how to build a inference stack on top of vLLM, including the following components:
 
 - **Helm Chart**: Deploys vLLM services in Kubernetes environments.
-- **Grafana Dashboard**: Visualizes key LLM serving metrics.
-- **Router**: Directs requests to appropriate backends based on routing keys or session IDs.
+- **Router**: Directs requests to appropriate backends based on routing keys or session IDs to maximize KV cache reuse.
+- **Grafana Dashboard**: Visualizes key LLM serving metrics for monitoring.
+
 
 ## Helm Chart
 
 ### Prerequisites
 
-- A running Kubernetes (K8s) environment with GPU ([Tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/))
+- A running Kubernetes (K8s) environment with GPUs ([Tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/))
 - (Optional) PersistentVolume (PV) with model weights
 
 
