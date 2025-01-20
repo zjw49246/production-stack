@@ -1,13 +1,22 @@
 #!/bin/bash
 set -e
 
+minikube_exists() {
+  command -v minikube >/dev/null 2>&1
+}
+
 # Install kubectl and helm
 bash ./install-kubectl.sh
 bash ./install-helm.sh
 
 # Install minikube
-curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+if [[ minikube_exists ]]; then
+  echo "Minikube already installed"
+else
+  curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+  sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+fi
+
 echo "net.core.bpf_jit_harden=0" | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 
