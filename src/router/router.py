@@ -76,8 +76,7 @@ async def process_request(method, header, body, backend_url, request_id, endpoin
     #if debug_request:
     #    logger.debug(f"Finished the request with request id: {debug_request.headers.get('x-request-id', None)} at {time.time()}")
 
-@app.post("/chat/completions")
-async def route_chat_completition(request: Request):
+async def route_general_request(request: Request, endpoint: str):
     """
     Route the incoming request to the backend server and stream the response 
     back to the client.
@@ -123,8 +122,7 @@ async def route_chat_completition(request: Request):
             request_body,
             server_url, 
             request_id,
-            endpoint = "/v1/chat/completions")
-            #debug_request = request)
+            endpoint = endpoint)
 
     headers, status_code = await anext(stream_generator)
 
@@ -135,11 +133,18 @@ async def route_chat_completition(request: Request):
         )
 
 
+@app.post("/chat/completions")
+async def route_chat_completition(request: Request):
+    return await route_general_request(request, "/v1/chat/completions")
+
+@app.post("/completions")
+async def route_completition(request: Request):
+    return await route_general_request(request, "/v1/completions")
+
 @app.get("/version")
 async def show_version():
     ver = {"version": STACK_VERSION}
     return JSONResponse(content=ver)
-
 
 @app.get("/models")
 async def show_models():
