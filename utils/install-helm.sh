@@ -3,11 +3,11 @@
 set -e 
 
 helm_exists() {
-    command -v helm >/dev/null 2>&1
+    which helm > /dev/null 2>&1
 }
 
 # Skip if already installed helm
-if [[ helm_exists ]]; then
+if helm_exists; then
     echo "Helm is installed"
     exit 0
 fi
@@ -18,7 +18,7 @@ chmod 700 get_helm.sh
 ./get_helm.sh
 
 # Test helm installation
-if [[ helm_exists ]]; then
+if helm_exists; then
     echo "Helm is successfully installed"
 else
     echo "Helm installation failed"

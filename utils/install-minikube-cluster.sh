@@ -10,7 +10,7 @@ bash ./install-kubectl.sh
 bash ./install-helm.sh
 
 # Install minikube
-if [[ minikube_exists ]]; then
+if minikube_exists; then
   echo "Minikube already installed"
 else
   curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64

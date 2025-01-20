@@ -8,7 +8,7 @@ kubectl_exists() {
 
 # If kubectl is already installed, exit
 
-if [[ kubectl_exists ]]; then
+if kubectl_exists; then
     echo "kubectl is already installed"
     exit 0
 fi
@@ -18,7 +18,7 @@ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stabl
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 # Test the installation
-if [[ kubectl_exists ]]; then
+if kubectl_exists; then
     echo "kubectl installed successfully"
 else
     echo "kubectl installation failed"
