@@ -17,7 +17,7 @@ Inside the stack, there are the following key parts:
 ### Prerequisites
 
 - A running Kubernetes (K8s) environment with GPUs ([Tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/))
-  - Quickly install one: run `cd utils && bash install-minikube.sh`
+  - Quickly install the k8s environment: run `cd utils && bash install-minikube-cluster.sh`
 
 
 ### Deployment
@@ -48,7 +48,8 @@ routerSpec:
 3. Deploy the Helm chart:
 
 ```bash
-helm install lmstack . -f values-customized.yaml
+# Execute this command in the root of the this repo
+sudo helm install lmstack helm/ -f values-customized.yaml
 ```
 
 ### Validate the installation
@@ -56,7 +57,7 @@ helm install lmstack . -f values-customized.yaml
 **Monitor the status of the deployment**: 
 The following command can be used to monitor the deployment
 ```bash
-kubectl get all
+sudo kubectl get all
 ```
 
 You should be able to see outputs like this:
@@ -100,26 +101,18 @@ curl -v http://localhost:30080/completions \
 
 You should see outputs like
 ```text
-*   Trying 127.0.0.1:30080...
-* Connected to localhost (127.0.0.1) port 30080 (#0)
-> POST /completions HTTP/1.1
-> Host: localhost:30080
-> User-Agent: curl/7.81.0
-> Accept: */*
-> content-type: application/json
-> Content-Length: 99
->
-* Mark bundle as not supporting multiuse
-< HTTP/1.1 200 OK
-< date: Mon, 20 Jan 2025 22:10:36 GMT
-< server: uvicorn
-< date: Mon, 20 Jan 2025 22:10:35 GMT
-< server: uvicorn
-< content-length: 445
-< content-type: application/json
-<
-* Connection #0 to host localhost left intact
-{"id":"cmpl-f6527a57403849518dfe793126d59b3e","object":"text_completion","created":1737411036,"model":"facebook/opt-125m","choices":[{"index":0,"text":"  \"If she's not here, you're dead.\"\nlol. If you do troll the world it gets annoying pretty fast.\n...next","logprobs":null,"finish_reason":"length","stop_reason":null,"prompt_logprobs":null}],"usage":{"prompt_tokens":7,"total_tokens":37,"completion_tokens":30,"prompt_tokens_details":null}}
+.........
+{"id":"cmpl-f6527a57403849518dfe793126d59b3e",
+"object":"text_completion",
+"created":1737411036,
+"model":"facebook/opt-125m",
+"choices":[
+  {"index":0,"text":"  \"If she's not here, you're dead.\"\nlol. If you do troll the world it gets annoying pretty fast.\n...next",
+   "logprobs":null,
+   "finish_reason":"length",
+   "stop_reason":null,
+   "prompt_logprobs":null}],
+   "usage":{"prompt_tokens":7,"total_tokens":37,"completion_tokens":30,"prompt_tokens_details":null}}
 ```
 
 #### Uninstall
