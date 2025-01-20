@@ -1,48 +1,86 @@
-# -- Default values for chart vllm
+# -- Default values for lmstack helm chart
 # -- Declare variables to be passed into your templates.
 
 
 # -- Serving engine configuratoon
 servingEngineSpec:
+  # -- Customized labels for the serving engine deployment
   labels:
     environment: "test"
     release: "test"
 
+  # modelSpec - configuring multiple serving engines deployments that runs different models
+  # Each entry in the modelSpec array should contain the following fields:
+  # - name: (string) The name of the model, e.g., "example-model"
+  # - repository: (string) The repository of the model, e.g., "vllm/vllm-openai"
+  # - tag: (string) The tag of the model, e.g., "latest"
+  # - modelURL: (string) The URL of the model, e.g., "facebook/opt-125m"
+  #
+  # - replicaCount: (int) The number of replicas for the model, e.g. 1
+  # - requestCPU: (int) The number of CPUs requested for the model, e.g. 6
+  # - requestMemory: (string) The amount of memory requested for the model, e.g., "16Gi"
+  # - requestGPU: (int) The number of GPUs requested for the model, e.g., 1
+  #
+  # - pvcStorage: (string) The amount of storage requested for the model, e.g., "50Gi"
+  # - pvcMatchLabels: (optional, map) The labels to match the PVC, e.g., {model: "opt125m"}
+  #
+  # - vllmConfig: (optional, map) The configuration for the VLLM model, supported options are:
+  #   - enablePrefixCaching: (optional, bool) Enable prefix caching, e.g., false
+  #   - enableChunkedPrefill: (optional, bool) Enable chunked prefill, e.g., false
+  #   - maxModelLen: (optional, int) The maximum model length, e.g., 16384
+  #   - dtype: (optional, string) The data type, e.g., "bfloat16"
+  #   - extraArgs: (optional, list) Extra command line arguments to pass to vLLM, e.g., ["--disable-log-requests"]
+  #
+  # - lmcacheConfig: (optional, map) The configuration of the LMCache for KV offloading, supported options are:
+  #   - enabled: (optional, bool) Enable LMCache, e.g., true
+  #   - cpuOffloadingBufferSize: (optional, string) The CPU offloading buffer size, e.g., "30"
+  #
+  # - env: (optional, list) The environment variables to set in the container, e.g., your HF_TOKEN
+  #
+  # - nodeSelectorTerms: (optional, list) The node selector terms to match the nodes
+  #
+  # Example:
+  # modelSpec:
+  # - name: "mistral"
+  #   repository: "lmcache/vllm-openai"
+  #   tag: "latest"
+  #   modelURL: "mistralai/Mistral-7B-Instruct-v0.2"
+  #   replicaCount: 1
+  #
+  #   requestCPU: 10
+  #   requestMemory: "64Gi"
+  #   requestGPU: 1 
+  #
+  #   pvcStorage: "50Gi"
+  #   pvcMatchLabels: 
+  #     model: "mistral"
+  #
+  #   vllmConfig: 
+  #     enableChunkedPrefill: false
+  #     enablePrefixCaching: false
+  #     maxModelLen: 16384
+  #     dtype: "bfloat16"
+  #     extraArgs: ["--disable-log-requests", "--gpu-memory-utilization", "0.8"]
+  #
+  #   lmcacheConfig:
+  #     enabled: true
+  #     cpuOffloadingBufferSize: "30"
+  #
+  #   env:
+  #     - name: HF_TOKEN
+  #       value: <HUGGING_FACE_TOKEN>
+  #
+  #   nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: nvidia.com/gpu.product
+  #         operator: "In"
+  #         values:
+  #         - "NVIDIA-RTX-A6000"
   modelSpec: []
-  #- name: "opt125m"
-  #  # -- (Optional) Specify type of GPU to use
-  #  gpuModels:
-  #    - "NVIDIA-RTX-A6000"
 
-  #  # -- Number of replicas
-  #  replicaCount: 1
-
-  #  # Docker image and its start command line
-  #  image:
-  #    # -- Image repository
-  #    repository: "vllm/vllm-openai"
-  #    # -- Image tag
-  #    tag: "latest"
-  #    # -- Container launch command
-  #    command: ["vllm", "serve", "facebook/opt-125m", "--dtype", "bfloat16", "--host", "0.0.0.0", "--port", "8000"]
-  #    # Optional: env (e.g., for HF_TOKEN)
-  #    # Note: HF_HOME is set to /data by-default, so don't need to add it here
-  #    env: []
-  #
-  #
-  #  # -- Resource configuration
-  #  requestCPU: 4
-  #  requestMemory: "16Gi"
-  #  requestGPU: 1
-  #
-  #  # -- PVC configuration
-  #  pvcStorage: "50Gi"
-  #  pvcMatchLabels:
-  #    type: "opt125m"
-  
-  # -- Container port
+  # -- Container port 
   containerPort: 8000
-  # -- Service port
+  # -- Service port 
   servicePort: 80
   
   # -- Set other environment variables from config map
@@ -82,10 +120,12 @@ servingEngineSpec:
   maxUnavailablePodDisruptionBudget: ""
 
   # -- Tolerations configuration (when there are taints on nodes)
-  #tolerations:
-  #  - key: "node-role.kubernetes.io/control-plane"
-  #    operator: "Exists"
-  #    effect: "NoSchedule"
+  # Example:
+  # tolerations:
+  #   - key: "node-role.kubernetes.io/control-plane"
+  #     operator: "Exists"
+  #     effect: "NoSchedule"
+  tolerations: []
   
 
 routerSpec:
@@ -98,8 +138,8 @@ routerSpec:
   # -- Service port
   servicePort: 80
 
-  # -- routing logic, could be "round-robin" or "session"
-  routingLogic: "round-robin"
+  # -- routing logic, could be "roundrobin" or "session"
+  routingLogic: "roundrobin"
 
   # -- extra router commandline arguments
   extraArgs: []

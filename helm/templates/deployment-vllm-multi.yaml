@@ -21,25 +21,72 @@ spec:
     spec:
       containers:
         - name: "vllm"
-          image: "{{ required "Required value 'modelSpec.image.repository' must be defined !" $modelSpec.image.repository }}:{{ required "Required value 'modelSpec.image.tag' must be defined !" $modelSpec.image.tag }}"
-          {{- if $modelSpec.image.command }}
-          command :
-            {{- with $modelSpec.image.command }}
-            {{- toYaml . | nindent 10 }}
-            {{- end }}
+          image: "{{ required "Required value 'modelSpec.repository' must be defined !" $modelSpec.repository }}:{{ required "Required value 'modelSpec.tag' must be defined !" $modelSpec.tag }}"
+
+          command:
+          - "vllm"
+          - "serve"
+          - {{ $modelSpec.modelURL | quote }}
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - {{ include "chart.container-port" . | quote }}
+          {{- with $modelSpec.vllmConfig }}
+          {{-   if hasKey . "enableChunkedPrefill" }}
+          - "--enable-chunked-prefill"
+          - {{ .enableChunkedPrefill | quote }}
+          {{-   end }}
+          {{-   if .enablePrefixCaching }}
+          - "--enable-prefix-caching"
+          {{-   end }}
+          {{-   if hasKey . "maxModelLen" }}
+          - "--max-model-len"
+          - {{ .maxModelLen | quote }}
+          {{-   end }}
+          {{-   if hasKey . "dtype" }}
+          - "--dtype"
+          - {{ .dtype | quote }}
+          {{-   end }}
+          {{-   if .extraArgs }}
+          {{-     range .extraArgs }}
+          - {{ . | quote }}
+          {{-     end }}
+          {{-   end }}
+          {{- end }}
+          {{- if $modelSpec.lmcacheConfig }}
+          {{-   if $modelSpec.lmcacheConfig.enabled }}
+          - "--kv-transfer-config"
+          - '{"kv_connector":"LMCacheConnector","kv_role":"kv_both"}'
+          {{-   end }}
           {{- end }}
           securityContext:
             runAsNonRoot: false
           imagePullPolicy: IfNotPresent
-          {{- if $modelSpec.image.env }}
           env:
           - name: HF_HOME
             value: /data
-            {{- with $modelSpec.image.env }}
-            {{- toYaml . | nindent 10 }}
-            {{- end }}
-          {{- else }}
-          env: []
+          {{- with $modelSpec.env }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          {{- if $modelSpec.lmcacheConfig }}
+          {{-   if $modelSpec.lmcacheConfig.enabled }}
+          - name: LMCACHE_USE_EXPERIMENTAL
+            value: "True"
+          - name: VLLM_RPC_TIMEOUT
+            value: "1000000"
+          {{-   end }}
+          {{-   if $modelSpec.lmcacheConfig.cpuOffloadingBufferSize }}
+          - name: LMCACHE_LOCAL_CPU
+            value: "True"
+          - name: LMCACHE_MAX_LOCAL_CPU_SIZE
+            value: "{{ $modelSpec.lmcacheConfig.cpuOffloadingBufferSize }}"
+          {{-   end }}
+          {{-   if $modelSpec.lmcacheConfig.diskOffloadingBufferSize }}
+          - name: LMCACHE_LOCAL_DISK 
+            value: "True"
+          - name: LMCACHE_MAX_LOCAL_DISK_SIZE
+            value: "{{ $modelSpec.lmcacheConfig.diskOffloadingBufferSize }}"
+          {{-   end }}
           {{- end }}
           {{- if .Values.servingEngineSpec.configs }}
           envFrom:
@@ -69,19 +116,15 @@ spec:
 
       {{- if (gt (int $modelSpec.requestGPU ) 0) }}
       runtimeClassName: nvidia
-      {{- if $modelSpec.gpuModels }}
+      {{- end }} 
+      {{- if $modelSpec.nodeSelectorTerms}}
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-              - matchExpressions:
-                - key: nvidia.com/gpu.product
-                  operator: In
-                  {{- with $modelSpec.gpuModels }}
-                  values:
-                    {{- toYaml . | nindent 20 }}
-                  {{- end }}
-      {{- end }} 
+            {{- with $modelSpec.nodeSelectorTerms }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
       {{- end }} 
 {{- end }}
 ---
