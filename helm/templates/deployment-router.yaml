@@ -52,3 +52,11 @@ spec:
         ports:
           - name: "router-cport"
             containerPort: {{ .Values.routerSpec.containerPort }}
+
+        livenessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: {{ .Values.routerSpec.containerPort }}
