@@ -141,33 +141,23 @@ routerSpec:
   # -- routing logic, could be "roundrobin" or "session"
   routingLogic: "roundrobin"
 
+  # -- session key if using "session" routing logic
+  sessionKey: ""
+
   # -- extra router commandline arguments
   extraArgs: []
 
-  # -- Engine scrape interval
-  engineScrapeInterval: 10s
+  # -- Interval in seconds to scrape the serving engine metrics
+  engineScrapeInterval: 15
 
-  # -- Window to calculate request stats
-  requestStatsWindow: 10s
+  # -- Window size in seconds to calculate the request statistics
+  requestStatsWindow: 60
 
-
+  # -- Customized labels for the router deployment
   labels:
     environment: "router"
     release: "router"
 
-  # -- TODO: Resource configuration
-  #resources:
-  #  requests:
-  #    # -- Number of CPUs
-  #    cpu: 1
-  #    # -- CPU memory configuration
-  #    memory: 1Gi
-  #  limits:
-  #    # -- Number of CPUs
-  #    cpu: 1
-  #    # -- CPU memory configuration
-  #    memory: 1Gi
-  
   # -- TODO: Readiness probe configuration
   #startupProbe:
   #  # -- Number of seconds after the container has started before startup probe is initiated
@@ -179,3 +169,5 @@ routerSpec:
   #   # -- Configuration of the Kubelet http request on the server
   #  httpGet:
   #    # -- Path to access on the HTTP server
+  #
+  # -- TODO: resource configuration: currently it uses 4 CPUs and 16Gi memory by default

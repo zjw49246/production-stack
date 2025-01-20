@@ -18,7 +18,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-router-service-account
       containers:
       - name: router-container
-        image: apostacyh/lmcache-router:latest
+        image: lmcache/lmstack-router:latest
         args: # TODO: update here
           - "--host"
           - "0.0.0.0"
@@ -28,8 +28,22 @@ spec:
           - "k8s"
           - "--k8s-label-selector"
           - {{ include "labels.toCommaSeparatedList" .Values.servingEngineSpec.labels }}
-          {{- with .Values.routerSpec.extraArgs}}
-          {{- toYaml . | nindent 10 }}
+          - "--routing-logic"
+          - "{{ .Values.routerSpec.routingLogic }}"
+          {{- if .Values.routerSpec.sessionKey }}
+          - "--session-key"
+          - "{{ .Values.routerSpec.sessionKey }}"
+          {{- end }}
+          {{- if .Values.routerSpec.engineScrapeInterval }}
+          - "--engine-stats-interval"
+          - "{{ .Values.routerSpec.engineScrapeInterval }}"
+          {{- end }}
+          {{- if .Values.routerSpec.requestStatsWindow }}
+          - "--request-stats-window"
+          - "{{ .Values.routerSpec.requestStatsWindow }}"
+          {{- end }}
+          {{- if .Values.routerSpec.extraArgs }}
+          {{- toYaml .Values.routerSpec.extraArgs | nindent 10 }}
           {{- end }}
         resources: # TODO: update here
           requests:
