@@ -24,4 +24,15 @@ sudo sysctl -p
 sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker
 
 # Start cluster
-sudo minikube start --driver docker --container-runtime docker --gpus all --force
+sudo minikube start --driver docker --container-runtime docker --gpus all --force --addons=nvidia-device-plugin
+
+# Install gpu-operator
+sudo helm repo add nvidia https://helm.ngc.nvidia.com/nvidia \
+    && sudo helm repo update
+
+sudo helm install --wait --generate-name \
+    -n gpu-operator --create-namespace \
+    nvidia/gpu-operator \
+    --version=v24.9.1
+
+
