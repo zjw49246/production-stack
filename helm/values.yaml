@@ -126,7 +126,9 @@ servingEngineSpec:
   #     operator: "Exists"
   #     effect: "NoSchedule"
   tolerations: []
-  
+
+  # -- RuntimeClassName configuration, set to "nvidia" if the model requires GPU
+  runtimeClassName: ""
 
 routerSpec:
   # -- Number of replicas

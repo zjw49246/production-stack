@@ -114,7 +114,7 @@ spec:
       {{-   end }}
       {{- end }}
 
-      {{- if (gt (int $modelSpec.requestGPU ) 0) }}
+      {{- if .Values.servingEngineSpec.runtimeClassName }}
       runtimeClassName: nvidia
       {{- end }} 
       {{- if $modelSpec.nodeSelectorTerms}}
