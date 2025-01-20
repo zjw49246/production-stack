@@ -17,6 +17,7 @@ Inside the stack, there are the following key parts:
 ### Prerequisites
 
 - A running Kubernetes (K8s) environment with GPUs ([Tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/))
+  - Quickly install one: run `cd utils && bash install-minikube.sh`
 
 
 ### Deployment
