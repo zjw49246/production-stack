@@ -113,7 +113,7 @@ You should see outputs like
 #### Uninstall
 
 ```bash
-helm uninstall lmstack
+sudo helm uninstall lmstack
 ```
 
 
