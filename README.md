@@ -16,8 +16,9 @@ Inside the stack, there are the following key parts:
 
 ### Prerequisites
 
-- A running Kubernetes (K8s) environment with GPUs ([Tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/))
-  - Quickly install the k8s environment: run `cd utils && bash install-minikube-cluster.sh`
+- A running Kubernetes (K8s) environment with GPUs
+  - Quickly install the k8s environment on your GPU server: run `cd utils && bash install-minikube-cluster.sh`
+  - Or, follow this [tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/)
 
 
 ### Deployment
@@ -38,18 +39,14 @@ servingEngineSpec:
     requestGPU: 1
 
     pvcStorage: "10Gi"
-
-routerSpec:
-  extraArgs:
-    - "--routing-logic"
-    - "roundrobin"
 ```
 
 3. Deploy the Helm chart:
 
 ```bash
 # Execute this command in the root of the this repo
-sudo helm install lmstack helm/ -f values-customized.yaml
+sudo helm repo add lmstack-repo https://lmcache.github.io/helm/
+sudo helm install lmstack lmcache-repo/lmstack -f values-customized.yaml
 ```
 
 ### Validate the installation
