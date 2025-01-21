@@ -44,7 +44,6 @@ servingEngineSpec:
 3. Deploy the Helm chart:
 
 ```bash
-# Execute this command in the root of the this repo
 sudo helm repo add lmstack-repo https://lmcache.github.io/helm/
 sudo helm install lmstack lmstack-repo/lmstack -f values-customized.yaml
 ```
