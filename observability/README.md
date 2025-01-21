@@ -9,7 +9,7 @@ The observability stack is based on [kube-prom-stack](https://github.com/prometh
 To launch the observability stack:
 
 ```bash
-bash install.sh
+sudo bash install.sh
 ```
 
 After installing, the dashboard can be accessed through the service `service/kube-prom-stack-grafana` in the `monitoring` namespace.
@@ -19,7 +19,7 @@ After installing, the dashboard can be accessed through the service `service/kub
 Forward the Grafana dashboard port to the local node-port
 
 ```bash
-kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80 --address 0.0.0.0
+sudo kubectl --namespace monitoring port-forward svc/kube-prom-stack-grafana 3000:80 --address 0.0.0.0
 ```
 
 Open the webpage at `http://<IP of your node>:3000` to access the Grafana web page. The default user name is `admin` and the password can be configured in `values.yaml` (default is `prom-operator`).
