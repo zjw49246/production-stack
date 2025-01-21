@@ -88,20 +88,19 @@ _Note_: it takes some time to download the docker images and the LLM weights. Yo
 
 First, forward the service port to the host machine (port 30080):
 ```bash
- kubectl port-forward svc/lmstack-router-service 30080:80
+sudo kubectl port-forward svc/lmstack-router-service 30080:80
 ```
 
 Then, curl the endpoint on the host machine
 ```bash
 # curl the endpoint
-curl -v http://localhost:30080/completions \
+curl -o- http://localhost:30080/completions \
 -H "content-type: application/json" \
 -d '{"model": "facebook/opt-125m", "prompt": "Write a simple poem: ", "stream":false, "max_tokens": 30}'
 ```
 
 You should see outputs like
 ```text
-.........
 {"id":"cmpl-f6527a57403849518dfe793126d59b3e",
 "object":"text_completion",
 "created":1737411036,
