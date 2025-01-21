@@ -75,7 +75,7 @@ lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   1/1     Running   0          2
 
 _Note_: it takes some time to download the docker images and the LLM weights. You might need to wait for it to be ready.
 
-### Send a query to the stack:
+### Send a query to the stack via OpenAI API:
 
 The stack provides the same [**OpenAI API interface**](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html?ref=blog.mozilla.ai#openai-compatible-server) as vLLM, and can be accessed through kubernetes service.
 
