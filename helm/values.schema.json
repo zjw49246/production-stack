@@ -136,6 +136,9 @@
               "effect": { "type": "string" }
             }
           }
+        },
+        "runtimeClassName": { 
+            "type": "string"
         }
       }
     },
