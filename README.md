@@ -1,18 +1,21 @@
 # LMStack
 
 
-This project provides a reference implementation on how to build an inference stack on top of vLLM, including the following components:
+**LMStack** project provides a reference implementation on how to build an inference stack on top of vLLM, which allows you to:
 
-- **Helm Chart**: Deploys vLLM services in Kubernetes environments.
-- **Grafana Dashboard**: Visualizes key LLM serving metrics for monitoring.
+- 🚀 Scale from single vLLM instance to distributed vLLM deployment without changing any application code
+- 💻 Monitor the  through a web dashboard
+- 😄 Enjoy the performance benefits brought by request routing and KV cache offloading
 
-Inside the stack, there are the following key parts:
-- **Backend**: The vLLM engines that runs different LLMs
-- **Router**: Directs requests to appropriate backends based on routing keys or session IDs to maximize KV cache reuse.
+The stack is set up using [Helm](https://helm.sh/docs/), and contains the following key parts:
+
+- **Serving engine**: The vLLM engines that run different LLMs
+- **Request router**: Directs requests to appropriate backends based on routing keys or session IDs to maximize KV cache reuse.
+- **Observability stack**: monitors the metrics of the backends through [Prometheus](https://github.com/prometheus/prometheus) + [Grafana](https://grafana.com/)
 
  <img src="https://github.com/user-attachments/assets/ffbdb2de-0dce-46cf-bc07-c4057b35ad7f" alt="Architecture of the stack" width="800"/>
 
-## Helm Chart
+## Deploying LMStack via Helm
 
 ### Prerequisites
 
@@ -53,56 +56,67 @@ sudo helm install lmstack lmstack-repo/lmstack -f values-customized.yaml
 **Monitor the status of the deployment**: 
 The following command can be used to monitor the deployment
 ```bash
-sudo kubectl get all
+sudo kubectl get pods
 ```
 
 You should be able to see outputs like this:
 ```
-NAME                                                  READY   STATUS    RESTARTS   AGE
-pod/lmstack-deployment-router-859d8fb668-2x2b7        1/1     Running   0          2m38s
-pod/lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   0/1     Running   0          2m38s
-
-NAME                             TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-service/kubernetes               ClusterIP   10.96.0.1       <none>        443/TCP   35d
-...
+NAME                                              READY   STATUS              RESTARTS   AGE
+lmstack-deployment-router-859d8fb668-2x2b7        1/1     Running             0          5s
+lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   0/1     ContainerCreating   0          5s
 ```
 
-Now please wait until the second row to turn into 
+Now please wait until all the pods turned into READY the second row to turn into `Running` and `READY 1/1` states.
 ```
-NAME                                                  READY   STATUS    RESTARTS   AGE
-pod/lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   1/1     Running   0          2m38s
+NAME                                              READY   STATUS    RESTARTS   AGE
+lmstack-deployment-router-859d8fb668-2x2b7        1/1     Running   0          2m38s
+lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   1/1     Running   0          2m38s
 ```
 
 _Note_: it takes some time to download the docker images and the LLM weights. You might need to wait for it to be ready.
 
-**Send a query to the stack**:
+### Send a query to the stack:
 
-First, forward the service port to the host machine (port 30080):
+The stack provides the same [**OpenAI API interface**](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html?ref=blog.mozilla.ai#openai-compatible-server) as vLLM, and can be accessed through kubernetes service.
+
+Follow the instructions below to send an example query to the OpenAI endpoint:
+
+1. forward the service port to the host machine (port 30080):
 ```bash
 sudo kubectl port-forward svc/lmstack-router-service 30080:80
 ```
 
-Then, open a new terminal, and curl the endpoint on the host machine
+2. open a new terminal, and curl the endpoint on the host machine
 ```bash
-# curl the endpoint
-curl -o- http://localhost:30080/completions \
--H "content-type: application/json" \
--d '{"model": "facebook/opt-125m", "prompt": "Write a simple poem: ", "stream":false, "max_tokens": 30}'
+curl -o- http://localhost:30080/models
 ```
 
-You should see outputs like
+3. You should see outputs like
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "facebook/opt-125m",
+      "object": "model",
+      "created": 1737428424,
+      "owned_by": "vllm",
+      "root": null
+    }
+  ]
+}
+```
+
+The available endpoints are:
 ```text
-{"id":"cmpl-f6527a57403849518dfe793126d59b3e",
-"object":"text_completion",
-"created":1737411036,
-"model":"facebook/opt-125m",
-"choices":[
-  {"index":0,"text":"  \"If she's not here, you're dead.\"\nlol. If you do troll the world it gets annoying pretty fast.\n...next",
-   "logprobs":null,
-   "finish_reason":"length",
-   "stop_reason":null,
-   "prompt_logprobs":null}],
-   "usage":{"prompt_tokens":7,"total_tokens":37,"completion_tokens":30,"prompt_tokens_details":null}}
+/health, Methods: GET
+/tokenize, Methods: POST
+/detokenize, Methods: POST
+/models, Methods: GET
+/version, Methods: GET
+/chat/completions, Methods: POST
+/completions, Methods: POST
+/embeddings, Methods: POST
 ```
 
 #### Uninstall
