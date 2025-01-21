@@ -44,7 +44,7 @@ servingEngineSpec:
     pvcStorage: "10Gi"
 ```
 
-3. Deploy the Helm chart:
+2. Deploy the Helm chart:
 
 ```bash
 sudo helm repo add lmstack-repo https://lmcache.github.io/helm/
