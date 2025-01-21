@@ -68,9 +68,10 @@ service/kubernetes               ClusterIP   10.96.0.1       <none>        443/T
 ```
 
 Now please wait until the second role to turn into 
+```
 NAME                                                  READY   STATUS    RESTARTS   AGE
 pod/lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   **1**/1     Running   0          2m38s
-
+```
 
 _Note_: it takes some time to download the docker images and the LLM weights. You might need to wait for it to be ready.
 
