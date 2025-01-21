@@ -60,23 +60,17 @@ You should be able to see outputs like this:
 ```
 NAME                                                  READY   STATUS    RESTARTS   AGE
 pod/lmstack-deployment-router-859d8fb668-2x2b7        1/1     Running   0          2m38s
-pod/lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   1/1     Running   0          2m38s
+pod/lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   0/1     Running   0          2m38s
 
 NAME                             TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
 service/kubernetes               ClusterIP   10.96.0.1       <none>        443/TCP   35d
-service/lmstack-engine-service   ClusterIP   10.96.198.148   <none>        80/TCP    2m38s
-service/lmstack-router-service   ClusterIP   10.96.51.65     <none>        80/TCP    2m38s
-
-NAME                                              READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/devenv-deployment                 1/1     1            1           13d
-deployment.apps/lmstack-deployment-router         1/1     1            1           2m38s
-deployment.apps/lmstack-opt125m-deployment-vllm   1/1     1            1           2m38s
-
-NAME                                                        DESIRED   CURRENT   READY   AGE
-replicaset.apps/devenv-deployment-6787f89c8                 1         1         1       13d
-replicaset.apps/lmstack-deployment-router-859d8fb668        1         1         1       2m38s
-replicaset.apps/lmstack-opt125m-deployment-vllm-84dfc9bd7   1         1         1       2m38s
+...
 ```
+
+Now please wait until the second role to turn into 
+NAME                                                  READY   STATUS    RESTARTS   AGE
+pod/lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   **1**/1     Running   0          2m38s
+
 
 _Note_: it takes some time to download the docker images and the LLM weights. You might need to wait for it to be ready.
 
