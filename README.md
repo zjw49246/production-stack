@@ -88,7 +88,7 @@ First, forward the service port to the host machine (port 30080):
 sudo kubectl port-forward svc/lmstack-router-service 30080:80
 ```
 
-Then, curl the endpoint on the host machine
+Then, open a new terminal, and curl the endpoint on the host machine
 ```bash
 # curl the endpoint
 curl -o- http://localhost:30080/completions \
