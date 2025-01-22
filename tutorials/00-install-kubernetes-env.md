@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This tutorial guides you through the process of setting up a Kubernetes environment on a GPU-enabled server. We will install and configure `kubectl`, `helm`, and `minikube`, ensuring GPU compatibility for workloads requiring accelerated computing. By the end of this tutorial, you will have a fully functional Kubernetes environment ready for deploy the LLMStack.
+This tutorial guides you through the process of setting up a Kubernetes environment on a GPU-enabled server. We will install and configure `kubectl`, `helm`, and `minikube`, ensuring GPU compatibility for workloads requiring accelerated computing. By the end of this tutorial, you will have a fully functional Kubernetes environment ready for deploy the vLLM Production Stack.
 
 ---
 
@@ -186,7 +186,7 @@ Before you begin, ensure the following:
 
 ## Conclusion
 
-By following this tutorial, you have successfully set up a Kubernetes environment with GPU support on your server. You are now ready to deploy and test LLMStack on Kubernetes. For further configuration and workload-specific setups, consult the official documentation for `kubectl`, `helm`, and `minikube`.
+By following this tutorial, you have successfully set up a Kubernetes environment with GPU support on your server. You are now ready to deploy and test vLLM Production Stack on Kubernetes. For further configuration and workload-specific setups, consult the official documentation for `kubectl`, `helm`, and `minikube`.
 
 What's next: 
 - [01-minimal-helm-installation](https://github.com/vllm-project/production-stack/blob/main/tutorials/01-minimal-helm-installation.md)
