@@ -5,15 +5,10 @@ servingEngineSpec:
     tag: "latest"
     modelURL: "mistralai/Mistral-7B-Instruct-v0.2"
     replicaCount: 1
-
     requestCPU: 10
-    requestMemory: "32Gi"
+    requestMemory: "40Gi"
     requestGPU: 1
-
     pvcStorage: "50Gi"
-    pvcMatchLabels:
-      model: "mistral"
-
     vllmConfig:
       enableChunkedPrefill: false
       enablePrefixCaching: false
