@@ -1,4 +1,4 @@
-# LMStack helm chart
+# LLMStack helm chart
 
 This helm chart lets users deploy multiple serving engines and a router into the Kubernetes cluster.
 
@@ -15,12 +15,12 @@ This helm chart lets users deploy multiple serving engines and a router into the
 ## Install the helm chart
 
 ```bash
-helm install lmstack . -f values-example.yaml
+helm install llmstack . -f values-example.yaml
 ```
 
 ## Uninstall the deployment
 
-run `helm uninstall lmstack`
+run `helm uninstall llmstack`
 
 ## Configure the deployments
 

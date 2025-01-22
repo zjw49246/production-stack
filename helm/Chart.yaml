@@ -1,5 +1,5 @@
 apiVersion: v2
-name: lmstack
+name: vllm-stack
 description: The stack deployment of vLLM
 
 # A chart can be either an 'application' or a 'library' chart.

@@ -1,7 +1,7 @@
-# LMStack
+# LLMStack: reference stack for production vLLM deployment 
 
 
-**LMStack** project provides a reference implementation on how to build an inference stack on top of vLLM, which allows you to:
+**LLMStack** project provides a reference implementation on how to build an inference stack on top of vLLM, which allows you to:
 
 - 🚀 Scale from single vLLM instance to distributed vLLM deployment without changing any application code
 - 💻 Monitor the  through a web dashboard
@@ -15,7 +15,7 @@ The stack is set up using [Helm](https://helm.sh/docs/), and contains the follow
 
  <img src="https://github.com/user-attachments/assets/ffbdb2de-0dce-46cf-bc07-c4057b35ad7f" alt="Architecture of the stack" width="800"/>
 
-## Deploying LMStack via Helm
+## Deploying LLMStack via Helm
 
 ### Prerequisites
 
@@ -47,9 +47,11 @@ servingEngineSpec:
 2. Deploy the Helm chart:
 
 ```bash
-sudo helm repo add lmstack-repo https://lmcache.github.io/helm/
-sudo helm install lmstack lmstack-repo/lmstack -f values-customized.yaml
+sudo helm repo add llmstack-repo https://lmcache.github.io/helm/
+sudo helm install llmstack llmstack-repo/vllm-stack -f values-customized.yaml
 ```
+
+For more information about customizing the helm chart, please refer to [values.yaml](https://github.com/vllm-project/production-stack/blob/main/helm/values.yaml) and our [tutorials](https://github.com/vllm-project/production-stack/tree/main/tutorials).
 
 ### Validate the installation
 
@@ -61,16 +63,16 @@ sudo kubectl get pods
 
 You should be able to see outputs like this:
 ```
-NAME                                              READY   STATUS              RESTARTS   AGE
-lmstack-deployment-router-859d8fb668-2x2b7        1/1     Running             0          5s
-lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   0/1     ContainerCreating   0          5s
+NAME                                               READY   STATUS              RESTARTS   AGE
+llmstack-deployment-router-859d8fb668-2x2b7        1/1     Running             0          5s
+llmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   0/1     ContainerCreating   0          5s
 ```
 
 Now please wait until all the pods turned into READY the second row to turn into `Running` and `READY 1/1` states.
 ```
-NAME                                              READY   STATUS    RESTARTS   AGE
-lmstack-deployment-router-859d8fb668-2x2b7        1/1     Running   0          2m38s
-lmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   1/1     Running   0          2m38s
+NAME                                               READY   STATUS    RESTARTS   AGE
+llmstack-deployment-router-859d8fb668-2x2b7        1/1     Running   0          2m38s
+llmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   1/1     Running   0          2m38s
 ```
 
 _Note_: it takes some time to download the docker images and the LLM weights. You might need to wait for it to be ready.
@@ -83,7 +85,7 @@ Follow the instructions below to send an example query to the OpenAI endpoint:
 
 1. forward the service port to the host machine (port 30080):
 ```bash
-sudo kubectl port-forward svc/lmstack-router-service 30080:80
+sudo kubectl port-forward svc/llmstack-router-service 30080:80
 ```
 
 2. open a new terminal, and curl the endpoint on the host machine
@@ -122,7 +124,7 @@ The available endpoints are:
 #### Uninstall
 
 ```bash
-sudo helm uninstall lmstack
+sudo helm uninstall llmstack
 ```
 
 

@@ -1,4 +1,4 @@
-# -- Default values for lmstack helm chart
+# -- Default values for llmstack helm chart
 # -- Declare variables to be passed into your templates.
 
 
