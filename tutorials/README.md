@@ -5,13 +5,13 @@ Welcome to the tutorials for LLMStack! This series of tutorials is designed to g
 ## Table of Contents
 
 1. [Install Kubernetes Environment](00-install-kubernetes-env.md)  
-   Learn how to set up a Kubernetes environment as the foundation for your vLLM deployment.
+   Learn how to set up a Kubernetes environment as the foundation for running LLMStack.
 
 2. [Minimal Helm Installation](01-minimal-helm-installation.md)  
-   A step-by-step guide for deploying vLLM using Helm with minimal configuration.
+   A step-by-step guide for deploying LLMStack using Helm with minimal configuration.
 
 3. [Basic vLLM Configuration](02-basic-vllm-config.md)  
-   Configure vLLM for basic usage, covering the essential parameters and settings.
+   Learn how to customize vLLM options when using LLMStack.
 
 4. [Load Model from Persistent Volume](03-load-model-from-pv.md)  
    Discover how to load models from a persistent volume to ensure efficient resource usage.
@@ -20,7 +20,7 @@ Welcome to the tutorials for LLMStack! This series of tutorials is designed to g
    Learn how to deploy and manage multiple models simultaneously in your vLLM environment.
 
 6. [Offload KV Cache](05-offload-kv-cache.md)  
-   Understand how to offload the KV cache to optimize memory usage for large-scale deployments.
+   Understand how to offload the KV cache to CPU to improve the performance in production use cases.
 
 ---
 
