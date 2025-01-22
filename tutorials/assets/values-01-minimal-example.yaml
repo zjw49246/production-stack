@@ -1,7 +1,7 @@
 servingEngineSpec:
   modelSpec:
   - name: "opt125m"
-    repository: "lmcache/vllm-openai"
+    repository: "vllm/vllm-openai"
     tag: "latest"
     modelURL: "facebook/opt-125m"
 
