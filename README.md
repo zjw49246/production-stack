@@ -7,6 +7,12 @@
 - 💻 Monitor the  through a web dashboard
 - 😄 Enjoy the performance benefits brought by request routing and KV cache offloading
 
+## Latest News:
+
+- 🔥 LLMStack is released! Checkout our [release blogs](https://blog.lmcache.ai/2025-01-22-stack-release/) [01-22-2025]
+
+## Architecture
+
 The stack is set up using [Helm](https://helm.sh/docs/), and contains the following key parts:
 
 - **Serving engine**: The vLLM engines that run different LLMs
