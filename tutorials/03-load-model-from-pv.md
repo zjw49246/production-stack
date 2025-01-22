@@ -1,4 +1,4 @@
-# Loading a Model from Persistent Volume in Kubernetes
+# Tutorial: Loading Model Weights from Persistent Volume 
 
 ## Introduction
 In this tutorial, you will learn how to load a model from a Persistent Volume (PV) in Kubernetes to optimize deployment performance. The steps include creating a PV, matching it using `pvcMatchLabels`, and deploying the Helm chart to utilize the PV. You will also verify the setup by examining the contents and measuring performance improvements.
