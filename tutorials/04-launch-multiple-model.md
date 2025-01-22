@@ -1,7 +1,7 @@
-# Tutorial: Launching Multiple Models in LLMStack
+# Tutorial: Launching Multiple Models in vLLM Production Stack
 
 ## Introduction
-This tutorial demonstrates how to deploy multiple vLLM instances that serve different models on a Kubernetes cluster using LLMStack. By utilizing the `modelSpec` field in the Helm chart's `values.yaml`, you can configure multiple models to run on different GPUs. You will also learn how to verify the deployment and query the models.
+This tutorial demonstrates how to deploy multiple vLLM instances that serve different models on a Kubernetes cluster using vLLM Production Stack. By utilizing the `modelSpec` field in the Helm chart's `values.yaml`, you can configure multiple models to run on different GPUs. You will also learn how to verify the deployment and query the models.
 
 ## Table of Contents
 1. [Prerequisites](#prerequisites)

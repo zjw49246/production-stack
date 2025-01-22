@@ -1,4 +1,4 @@
-# LLMStack helm chart
+# vLLM Production Stack helm chart
 
 This helm chart lets users deploy multiple serving engines and a router into the Kubernetes cluster.
 

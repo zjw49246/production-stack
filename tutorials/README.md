@@ -1,17 +1,17 @@
-# LLMStack Tutorials
+# vLLM Production Stack Tutorials
 
-Welcome to the tutorials for LLMStack! This series of tutorials is designed to guide you through setting up and utilizing the vLLM production stack efficiently. Whether you're new to Kubernetes, Helm, or vLLM, or looking to deepen your understanding of advanced features like multi-model management and KV cache offloading, this series has you covered.
+Welcome to the tutorials for vLLM Production Stack! This series of tutorials is designed to guide you through setting up and utilizing the vLLM production stack efficiently. Whether you're new to Kubernetes, Helm, or vLLM, or looking to deepen your understanding of advanced features like multi-model management and KV cache offloading, this series has you covered.
 
 ## Table of Contents
 
 1. [Install Kubernetes Environment](00-install-kubernetes-env.md)  
-   Learn how to set up a Kubernetes environment as the foundation for running LLMStack.
+   Learn how to set up a Kubernetes environment as the foundation for running vLLM Production Stack.
 
 2. [Minimal Helm Installation](01-minimal-helm-installation.md)  
-   A step-by-step guide for deploying LLMStack using Helm with minimal configuration.
+   A step-by-step guide for deploying vLLM Production Stack using Helm with minimal configuration.
 
 3. [Basic vLLM Configuration](02-basic-vllm-config.md)  
-   Learn how to customize vLLM options when using LLMStack.
+   Learn how to customize vLLM options when using vLLM Production Stack.
 
 4. [Load Model from Persistent Volume](03-load-model-from-pv.md)  
    Discover how to load models from a persistent volume to ensure efficient resource usage.

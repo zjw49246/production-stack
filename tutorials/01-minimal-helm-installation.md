@@ -1,7 +1,7 @@
-# Tutorial: Minimal Setup of the LLMStack
+# Tutorial: Minimal Setup of the vLLM Production Stack
 
 ## Introduction
-This tutorial guides you through a minimal setup of the LLMStack using one vLLM instance with the `facebook/opt-125m` model. By the end of this tutorial, you will have a working deployment of vLLM on a Kubernetes environment with GPU.
+This tutorial guides you through a minimal setup of the vLLM Production Stack using one vLLM instance with the `facebook/opt-125m` model. By the end of this tutorial, you will have a working deployment of vLLM on a Kubernetes environment with GPU.
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -20,7 +20,7 @@ This tutorial guides you through a minimal setup of the LLMStack using one vLLM 
 1. A Kubernetes environment with GPU support. If not set up, follow the [00-install-kubernetes-env](00-install-kubernetes-env.md) guide.
 2. Helm installed. Refer to the [install-helm.sh](install-helm.sh) script for instructions.
 3. kubectl installed. Refer to the [install-kubectl.sh](install-kubectl.sh) script for instructions.
-4. vLLM project repository cloned: [LLMStack repository](https://github.com/vllm-project/production-stack).
+4. the project repository cloned: [vLLM Production Stack repository](https://github.com/vllm-project/production-stack).
 5. Basic familiarity with Kubernetes and Helm.
 
 ## Steps
@@ -28,7 +28,7 @@ This tutorial guides you through a minimal setup of the LLMStack using one vLLM 
 ### 1. Deploy vLLM Instance
 
 #### Step 1.1: Use Predefined Configuration
-The LLMStack repository provides a predefined configuration file, `values-minimal-example.yaml`, located at `tutorials/assets/values-minimal-example.yaml`. This file contains the following content:
+The vLLM Production Stack repository provides a predefined configuration file, `values-minimal-example.yaml`, located at `tutorials/assets/values-minimal-example.yaml`. This file contains the following content:
 
 ```yaml
 servingEngineSpec:
@@ -65,7 +65,7 @@ sudo helm repo add llmstack-repo https://lmcache.github.io/helm/
 sudo helm install llmstack llmstack-repo/vllm-stack -f tutorials/assets/values-minimal-example.yaml
 ```
 Explanation of the command:
-- `llmstack-repo`: The Helm repository for the LLMStack.
+- `llmstack-repo`: The Helm repository.
 - `llmstack`: The name of the Helm release.
 - `-f tutorials/assets/values-minimal-example.yaml`: Specifies the predefined configuration file.
 

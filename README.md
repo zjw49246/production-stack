@@ -1,7 +1,7 @@
-# LLMStack: reference stack for production vLLM deployment 
+# vLLM Production Stack: reference stack for production vLLM deployment 
 
 
-**LLMStack** project provides a reference implementation on how to build an inference stack on top of vLLM, which allows you to:
+**vLLM Production Stack** project provides a reference implementation on how to build an inference stack on top of vLLM, which allows you to:
 
 - 🚀 Scale from single vLLM instance to distributed vLLM deployment without changing any application code
 - 💻 Monitor the  through a web dashboard
@@ -9,7 +9,7 @@
 
 ## Latest News:
 
-- 🔥 LLMStack is released! Checkout our [release blogs](https://blog.lmcache.ai/2025-01-22-stack-release/) [01-22-2025]
+- 🔥 vLLM Production Stack is released! Checkout our [release blogs](https://blog.lmcache.ai/2025-01-22-stack-release/) [01-22-2025]
 
 ## Architecture
 
@@ -21,7 +21,7 @@ The stack is set up using [Helm](https://helm.sh/docs/), and contains the follow
 
  <img src="https://github.com/user-attachments/assets/ffbdb2de-0dce-46cf-bc07-c4057b35ad7f" alt="Architecture of the stack" width="800"/>
 
-## Deploying LLMStack via Helm
+## Deploying the stack via Helm
 
 ### Prerequisites
 
@@ -31,7 +31,7 @@ The stack is set up using [Helm](https://helm.sh/docs/), and contains the follow
 
 ### Deployment
 
-LLMStack can be deployed via helm charts. Clone the repo to local and execute the following commands for a minimal deployment:
+vLLM Production Stack can be deployed via helm charts. Clone the repo to local and execute the following commands for a minimal deployment:
 ```bash
 git clone https://github.com/vllm-project/production-stack.git
 cd production-stack/
