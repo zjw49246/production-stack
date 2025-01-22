@@ -27,107 +27,26 @@ The stack is set up using [Helm](https://helm.sh/docs/), and contains the follow
 
 - A running Kubernetes (K8s) environment with GPUs
   - Run `cd utils && bash install-minikube-cluster.sh`
-  - Or: [tutorial](https://minikube.sigs.k8s.io/docs/tutorials/nvidia/)
-
+  - Or follow our [tutorial](tutorials/00-install-kubernetes-env.md)
 
 ### Deployment
 
-1. Store your custom configurations in `values-customized.yaml`. Example:
-```yaml
-servingEngineSpec:
-  modelSpec:
-  - name: "opt125m"
-    repository: "lmcache/vllm-openai"
-    tag: "latest"
-    modelURL: "facebook/opt-125m"
-
-    replicaCount: 1
-
-    requestCPU: 6
-    requestMemory: "16Gi"
-    requestGPU: 1
-
-    pvcStorage: "10Gi"
-```
-
-2. Deploy the Helm chart:
-
+LLMStack can be deployed via helm charts. Clone the repo to local and execute the following commands for a minimal deployment:
 ```bash
+git clone https://github.com/vllm-project/production-stack.git
+cd production-stack/
 sudo helm repo add llmstack-repo https://lmcache.github.io/helm/
-sudo helm install llmstack llmstack-repo/vllm-stack -f values-customized.yaml
+sudo helm install llmstack llmstack-repo/vllm-stack -f tutorials/assets/values-01-minimal-example.yaml
 ```
 
-For more information about customizing the helm chart, please refer to [values.yaml](https://github.com/vllm-project/production-stack/blob/main/helm/values.yaml) and our [tutorials](https://github.com/vllm-project/production-stack/tree/main/tutorials).
+The deployed stack provides the same [**OpenAI API interface**](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html?ref=blog.mozilla.ai#openai-compatible-server) as vLLM, and can be accessed through kubernetes service.
 
-### Validate the installation
+To validate the installation and and send query to the stack, refer to [this tutorial](tutorials/01-minimal-helm-installation.md).
 
-**Monitor the status of the deployment**: 
-The following command can be used to monitor the deployment
-```bash
-sudo kubectl get pods
-```
+For more information about customizing the helm chart, please refer to [values.yaml](https://github.com/vllm-project/production-stack/blob/main/helm/values.yaml) and our other [tutorials](https://github.com/vllm-project/production-stack/tree/main/tutorials).
 
-You should be able to see outputs like this:
-```
-NAME                                               READY   STATUS              RESTARTS   AGE
-llmstack-deployment-router-859d8fb668-2x2b7        1/1     Running             0          5s
-llmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   0/1     ContainerCreating   0          5s
-```
 
-Now please wait until all the pods turned into READY the second row to turn into `Running` and `READY 1/1` states.
-```
-NAME                                               READY   STATUS    RESTARTS   AGE
-llmstack-deployment-router-859d8fb668-2x2b7        1/1     Running   0          2m38s
-llmstack-opt125m-deployment-vllm-84dfc9bd7-vb9bs   1/1     Running   0          2m38s
-```
-
-_Note_: it takes some time to download the docker images and the LLM weights. You might need to wait for it to be ready.
-
-### Send a query to the stack via OpenAI API:
-
-The stack provides the same [**OpenAI API interface**](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html?ref=blog.mozilla.ai#openai-compatible-server) as vLLM, and can be accessed through kubernetes service.
-
-Follow the instructions below to send an example query to the OpenAI endpoint:
-
-1. forward the service port to the host machine (port 30080):
-```bash
-sudo kubectl port-forward svc/llmstack-router-service 30080:80
-```
-
-2. open a new terminal, and curl the endpoint on the host machine
-```bash
-curl -o- http://localhost:30080/models
-```
-
-3. You should see outputs like
-```json
-{
-  "object": "list",
-  "data": [
-    {
-      "id": "facebook/opt-125m",
-      "object": "model",
-      "created": 1737428424,
-      "owned_by": "vllm",
-      "root": null
-    }
-  ]
-}
-```
-
-The available endpoints are:
-```text
-/health, Methods: GET
-/tokenize, Methods: POST
-/detokenize, Methods: POST
-/models, Methods: GET
-/version, Methods: GET
-/chat/completions, Methods: POST
-/completions, Methods: POST
-/embeddings, Methods: POST
-```
-
-#### Uninstall
+### Uninstall
 
 ```bash
 sudo helm uninstall llmstack
