@@ -19,7 +19,16 @@ The stack is set up using [Helm](https://helm.sh/docs/), and contains the follow
 - **Request router**: Directs requests to appropriate backends based on routing keys or session IDs to maximize KV cache reuse.
 - **Observability stack**: monitors the metrics of the backends through [Prometheus](https://github.com/prometheus/prometheus) + [Grafana](https://grafana.com/)
 
- <img src="https://github.com/user-attachments/assets/ffbdb2de-0dce-46cf-bc07-c4057b35ad7f" alt="Architecture of the stack" width="800"/>
+
+ <img src="https://github.com/user-attachments/assets/8f05e7b9-0513-40a9-9ba9-2d3acca77c0c" alt="Architecture of the stack" width="800"/>
+
+## Roadmap
+
+We are actively working on this project and will release the following features soon. Please stay tuned!
+
+- **Autoscaling** based on vLLM-specific metrics
+- Support for **disaggregated prefill**
+- **Router improvements** (e.g., more performant router using non-python languages, KV-cache-aware routing algorithm, better fault tolerance, etc)
 
 ## Deploying the stack via Helm
 
