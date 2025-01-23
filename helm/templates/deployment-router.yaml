@@ -26,6 +26,8 @@ spec:
           - "{{ .Values.routerSpec.containerPort }}"
           - "--service-discovery"
           - "k8s"
+          - "--k8s-namespace"
+          - "{{ .Release.Namespace }}"
           - "--k8s-label-selector"
           - {{ include "labels.toCommaSeparatedList" .Values.servingEngineSpec.labels }}
           - "--routing-logic"
