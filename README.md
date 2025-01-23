@@ -77,7 +77,7 @@ The Grafana dashboard provides the following insights:
 6. **GPU KV Usage Percent**: Monitors GPU KV cache usage.
 7. **GPU KV Cache Hit Rate**: Displays the hit rate for the GPU KV cache.
 
- <img src="https://github.com/user-attachments/assets/225feb01-ac0f-4bf9-9da3-7bf955b2aa56" alt="Grafana dashboard to monitor the deployment" width="500"/>
+ <img src="https://github.com/user-attachments/assets/05766673-c449-4094-bdc8-dea6ac28cb79" alt="Grafana dashboard to monitor the deployment" width="500"/>
 
 ### Configuration
 
