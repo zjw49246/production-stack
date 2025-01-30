@@ -8,11 +8,13 @@ on:
       - '.github/workflows/**'
       - '**.py'
       - 'setup.py'
+      - 'helm/**'
   pull_request:
     paths:
-        - '.github/workflows/**'
-        - '**.py'
-        - 'setup.py'
+      - '.github/workflows/**'
+      - '**.py'
+      - 'setup.py'
+      - 'helm/**'
   merge_group:
 jobs:
   Check-Health-of-Cluster:
