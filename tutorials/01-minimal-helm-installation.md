@@ -48,6 +48,8 @@ servingEngineSpec:
     requestMemory: "16Gi"
     requestGPU: 1
 
+# set replicaCount to 2 or more to set up multiple vLLM instances
+
     pvcStorage: "10Gi"
 ```
 
