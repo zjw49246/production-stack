@@ -461,6 +461,7 @@ async def health() -> Response:
 async def metrics():
     return Response(generate_latest(), media_type="text/plain")
 
+
 # --- Prometheus Metrics Endpoint (v2 observation/tracking) ---
 @app.get("/metrics")
 async def metrics():
