@@ -45,10 +45,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# --- Observation & Tracking (from v2) ---
-# Define a Prometheus gauge for tracking the number of running requests per server.
-vnum_requests_running = Gauge(
+# --- Prometheus Gauges ---
+# Existing metrics
+num_requests_running = Gauge(
     "vllm:num_requests_running", "Number of running requests", ["server"]
+)
+num_requests_waiting = Gauge(
+    "vllm:num_requests_waiting", "Number of waiting requests", ["server"]
 )
 current_qps = Gauge("vllm:current_qps", "Current Queries Per Second", ["server"])
 avg_decoding_length = Gauge(
@@ -61,9 +64,20 @@ num_decoding_requests = Gauge(
     "vllm:num_decoding_requests", "Number of Decoding Requests", ["server"]
 )
 
+# New metrics per dashboard update
+healthy_pods_total = Gauge(
+    "vllm:healthy_pods_total", "Number of healthy vLLM pods", ["server"]
+)
+avg_latency = Gauge(
+    "vllm:avg_latency", "Average end-to-end request latency", ["server"]
+)
+avg_itl = Gauge("vllm:avg_itl", "Average Inter-Token Latency", ["server"])
+num_requests_swapped = Gauge(
+    "vllm:num_requests_swapped", "Number of swapped requests", ["server"]
+)
+
 
 # --- Request Processing & Routing ---
-# TODO: better request id system
 async def process_request(
     method, header, body, backend_url, request_id, endpoint, debug_request=None
 ):
@@ -72,10 +86,8 @@ async def process_request(
     """
     first_token = False
     total_len = 0
-    # Record the request start time and notify the request stats monitor.
     start_time = time.time()
     GetRequestStatsMonitor().on_new_request(backend_url, request_id, start_time)
-    # Log the start of request processing
     logger.info(f"Started request {request_id} for backend {backend_url}")
 
     client = httpx_client_wrapper()
@@ -88,8 +100,7 @@ async def process_request(
     ) as backend_response:
         # Yield headers and status code first.
         yield backend_response.headers, backend_response.status_code
-
-        # Then stream the response content in chunks.
+        # Stream response content.
         async for chunk in backend_response.aiter_bytes():
             total_len += len(chunk)
             if not first_token:
@@ -106,13 +117,8 @@ async def process_request(
 
 
 async def route_general_request(request: Request, endpoint: str):
-    """
-    Route the incoming request to the backend server and stream the response back to the client.
-    """
     in_router_time = time.time()
     request_id = str(uuid.uuid4())
-
-    # Read the full request body and JSON payload.
     request_body = await request.body()
     request_json = await request.json()
     requested_model = request_json.get("model", None)
@@ -125,10 +131,8 @@ async def route_general_request(request: Request, endpoint: str):
     endpoints = GetServiceDiscovery().get_endpoint_info()
     engine_stats = GetEngineStatsScraper().get_engine_stats()
     request_stats = GetRequestStatsMonitor().get_request_stats(time.time())
-
-    # Filter endpoints by the requested model.
     endpoints = list(filter(lambda x: x.model_name == requested_model, endpoints))
-    if len(endpoints) == 0:
+    if not endpoints:
         return JSONResponse(
             status_code=400, content={"error": f"Model {requested_model} not found."}
         )
@@ -138,11 +142,9 @@ async def route_general_request(request: Request, endpoint: str):
         endpoints, engine_stats, request_stats, request
     )
     logger.info(f"Request {request_id} routed to {server_url}")
-
     curr_time = time.time()
     logger.info(
-        f"Routing request {request_id} to {server_url} at {curr_time}, "
-        f"process time = {curr_time - in_router_time:.4f}"
+        f"Routing request {request_id} to {server_url} at {curr_time}, process time = {curr_time - in_router_time:.4f}"
     )
     stream_generator = process_request(
         request.method,
@@ -152,9 +154,7 @@ async def route_general_request(request: Request, endpoint: str):
         request_id,
         endpoint=endpoint,
     )
-
     headers, status_code = await anext(stream_generator)
-
     return StreamingResponse(
         stream_generator,
         status_code=status_code,
@@ -163,21 +163,17 @@ async def route_general_request(request: Request, endpoint: str):
     )
 
 
+# --- File Endpoints ---
 @app.post("/v1/files")
 async def route_files(request: Request):
-    """Handle file upload requests that include a purpose and file data."""
     form = await request.form()
-
-    # Validate required fields.
     purpose = form.get("purpose", "unknown")
     if "file" not in form:
         return JSONResponse(
             status_code=400, content={"error": "Missing required parameter 'file'"}
         )
-
     file_obj: UploadFile = form["file"]
     file_content = await file_obj.read()
-
     try:
         storage: Storage = app.state.batch_storage
         file_info = await storage.save_file(
@@ -417,8 +413,7 @@ async def route_completition(request: Request):
 
 @app.get("/version")
 async def show_version():
-    ver = {"version": STACK_VERSION}
-    return JSONResponse(content=ver)
+    return JSONResponse(content={"version": STACK_VERSION})
 
 
 @app.get("/v1/models")
@@ -437,14 +432,12 @@ async def show_models():
         )
         model_cards.append(model_card)
         existing_models.add(endpoint.model_name)
-
     model_list = ModelList(data=model_cards)
     return JSONResponse(content=model_list.model_dump())
 
 
 @app.get("/health")
 async def health() -> Response:
-    """Health check: verifies that service discovery and engine stats scraping are operational."""
     if not GetServiceDiscovery().get_health():
         return JSONResponse(
             content={"status": "Service discovery module is down."}, status_code=503
@@ -456,25 +449,31 @@ async def health() -> Response:
     return Response(status_code=200)
 
 
-# --- Prometheus Metrics Endpoint (v2 observation/tracking) ---
+# --- Prometheus Metrics Endpoint ---
 @app.get("/metrics")
 async def metrics():
-    return Response(generate_latest(), media_type="text/plain")
-
-
-# --- Prometheus Metrics Endpoint (v2 observation/tracking) ---
-@app.get("/metrics")
-async def metrics():
-    # Update gauges with stats from the request monitor
+    # Retrieve request stats from the monitor.
     stats = GetRequestStatsMonitor().get_request_stats(time.time())
     for server, stat in stats.items():
         current_qps.labels(server=server).set(stat.qps)
-        avg_decoding_length.labels(server=server).set(stat.ttft)
+        # Assuming stat contains the following attributes:
+        avg_decoding_length.labels(server=server).set(stat.avg_decoding_length)
         num_prefill_requests.labels(server=server).set(stat.in_prefill_requests)
         num_decoding_requests.labels(server=server).set(stat.in_decoding_requests)
-        vnum_requests_running.labels(server=server).set(
+        num_requests_running.labels(server=server).set(
             stat.in_prefill_requests + stat.in_decoding_requests
         )
+        avg_latency.labels(server=server).set(stat.avg_latency)
+        avg_itl.labels(server=server).set(stat.avg_itl)
+        num_requests_swapped.labels(server=server).set(stat.num_swapped_requests)
+    # For healthy pods, we use a hypothetical function from service discovery.
+    healthy = {}
+    endpoints = GetServiceDiscovery().get_endpoint_info()
+    for ep in endpoints:
+        # Assume each endpoint object has an attribute 'healthy' (1 if healthy, 0 otherwise).
+        healthy[ep.url] = 1 if getattr(ep, "healthy", True) else 0
+    for server, value in healthy.items():
+        healthy_pods_total.labels(server=server).set(value)
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
@@ -489,26 +488,16 @@ def validate_args(args):
             raise ValueError(
                 "Static models must be provided when using static service discovery."
             )
-
-    if args.service_discovery == "static" and args.static_backends is None:
-        raise ValueError(
-            "Static backends must be provided when using static service discovery."
-        )
-
     if args.service_discovery == "k8s" and args.k8s_port is None:
         raise ValueError("K8s port must be provided when using K8s service discovery.")
-
     if args.routing_logic == "session" and args.session_key is None:
         raise ValueError(
             "Session key must be provided when using session routing logic."
         )
-
     if args.log_stats and args.log_stats_interval <= 0:
         raise ValueError("Log stats interval must be greater than 0.")
-
     if args.engine_stats_interval <= 0:
         raise ValueError("Engine stats interval must be greater than 0.")
-
     if args.request_stats_window <= 0:
         raise ValueError("Request stats window must be greater than 0.")
 
@@ -521,8 +510,6 @@ def parse_args():
     parser.add_argument(
         "--port", type=int, default=8001, help="The port to run the server on."
     )
-
-    # Service discovery
     parser.add_argument(
         "--service-discovery",
         required=True,
@@ -559,8 +546,6 @@ def parse_args():
         default="",
         help="The label selector to filter vLLM pods when using K8s service discovery.",
     )
-
-    # Routing logic
     parser.add_argument(
         "--routing-logic",
         type=str,
@@ -616,8 +601,6 @@ def parse_args():
         default=60,
         help="The sliding window in seconds to compute request statistics.",
     )
-
-    # Logging
     parser.add_argument(
         "--log-stats", action="store_true", help="Log statistics periodically."
     )
@@ -664,7 +647,6 @@ def InitializeAll(args):
         )
     else:
         raise ValueError(f"Invalid service discovery type: {args.service_discovery}")
-
     InitializeEngineStatsScraper(args.engine_stats_interval)
     InitializeRequestStatsMonitor(args.request_stats_window)
 
@@ -694,22 +676,34 @@ def log_stats(interval: int = 10):
             if url in engine_stats:
                 es = engine_stats[url]
                 logstr += (
-                    f" Engine Stats (Dashboard): Running Requests: {es.num_running_requests}, "
-                    f"Queueing Delay (requests): {es.num_queuing_requests}, "
-                    f"GPU Cache Hit Rate: {es.gpu_cache_hit_rate:.2f}\n"
+                    f" Engine Stats: Running Requests: {es.num_running_requests}, "
+                    f"Queued Requests: {es.num_queuing_requests}, "
+                    f"GPU Cache Hit Rate: {es.gpu_prefix_cache_hit_rate:.2f}\n"
                 )
             else:
                 logstr += " Engine Stats: No stats available\n"
             if url in request_stats:
                 rs = request_stats[url]
                 logstr += (
-                    f" Request Stats (Dashboard): Current QPS: {rs.qps:.2f}, "
-                    f"Avg Decoding Length: {rs.ttft}, "
+                    f" Request Stats: QPS: {rs.qps:.2f}, "
+                    f"Avg Latency: {rs.avg_latency}, "
+                    f"Avg ITL: {rs.avg_itl}, "
                     f"Prefill Requests: {rs.in_prefill_requests}, "
                     f"Decoding Requests: {rs.in_decoding_requests}, "
-                    f"Finished Requests: {rs.finished_requests}, "
+                    f"Swapped Requests: {rs.num_swapped_requests}, "
+                    f"Finished: {rs.finished_requests}, "
                     f"Uptime: {rs.uptime:.2f} sec\n"
                 )
+                current_qps.labels(server=url).set(rs.qps)
+                avg_decoding_length.labels(server=url).set(rs.avg_decoding_length)
+                num_prefill_requests.labels(server=url).set(rs.in_prefill_requests)
+                num_decoding_requests.labels(server=url).set(rs.in_decoding_requests)
+                num_requests_running.labels(server=url).set(
+                    rs.in_prefill_requests + rs.in_decoding_requests
+                )
+                avg_latency.labels(server=url).set(rs.avg_latency)
+                avg_itl.labels(server=url).set(rs.avg_itl)
+                num_requests_swapped.labels(server=url).set(rs.num_swapped_requests)
             else:
                 logstr += " Request Stats: No stats available\n"
             logstr += "-" * 50 + "\n"
