@@ -14,7 +14,7 @@ spec:
     {{- end }}
   resources:
     requests:
-      storage: {{ $modelSpec.pvcStorage | default "40Gi" }}  # Default to 40Gi if not set
+      storage: {{ $modelSpec.pvcStorage | default "20Gi" }}  # Default to 40Gi if not set
   {{- if $modelSpec.storageClass }}
     {{- if eq $modelSpec.storageClass "efs_static_storage_class_indicator" }}
   storageClassName: ""
