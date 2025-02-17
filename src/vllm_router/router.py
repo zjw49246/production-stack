@@ -318,7 +318,7 @@ async def show_models():
             id=endpoint.model_name,
             object="model",
             created=endpoint.added_timestamp,
-            owned_by="shaoting",
+            owned_by="vllm",
         )
         model_cards.append(model_card)
         existing_models.add(endpoint.model_name)
