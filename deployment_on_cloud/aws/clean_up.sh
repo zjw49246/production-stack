@@ -71,6 +71,42 @@ for EIP in $EIP_ALLOCS; do
   echo "Released Elastic IP $EIP"
 done
 
+# Release EFS and the created security group
+while read -r fs_id; do
+    echo "Processing File System: $fs_id"
+
+    # Get the list of mount targets
+    mount_targets=$(aws efs describe-mount-targets --file-system-id "$fs_id" --query "MountTargets[*].MountTargetId" --output text)
+
+    # Delete each mount target
+    for mt_id in $mount_targets; do
+        echo "Deleting Mount Target: $mt_id"
+        aws efs delete-mount-target --mount-target-id "$mt_id"
+    done
+
+    # Wait for mount targets to be deleted (optional, prevents API conflicts)
+    while [[ -n $(aws efs describe-mount-targets --file-system-id "$fs_id" --query "MountTargets[*].MountTargetId" --output text) ]]; do
+        echo "Waiting for mount targets to be deleted..."
+        sleep 10
+    done
+
+    # Delete the file system
+    echo "Deleting File System: $fs_id"
+    aws efs delete-file-system --file-system-id "$fs_id"
+
+done < temp.txt
+
+
+for sg in $(aws ec2 describe-security-groups --filters "Name=group-name,Values=efs-sg" --query "SecurityGroups[*].GroupId" --output text); do
+
+    echo "Deleting Security Group: $sg"
+    for eni in $(aws ec2 describe-network-interfaces --filters "Name=group-id,Values=$sg" --query "NetworkInterfaces[*].NetworkInterfaceId" --output text); do
+        echo "$eni"
+        aws ec2 delete-network-interface --network-interface-id "$eni"
+    done
+    aws ec2 delete-security-group --group-id "$sg"
+done
+
 # Delete the EKS cluster
 echo "Deleting EKS cluster..."
 aws eks delete-cluster --name "$CLUSTER_NAME" --region "$REGION"
