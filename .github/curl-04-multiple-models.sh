@@ -11,4 +11,4 @@ source /usr/local/bin/conda-init
 conda activate llmstack
 
 # shellcheck disable=SC2034  # result_query appears unused. Verify it or export it.
-result_query=$(python3 tutorials/assets/example-04-openai.py --openai_api_base http://"$1":"$2"/ | tee output-04-multiple-models/query-04-multiple-models.json)
+result_query=$(python3 tutorials/assets/example-04-openai.py --openai_api_base http://"$1":"$2"/v1/ | tee output-04-multiple-models/query-04-multiple-models.json)

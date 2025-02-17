@@ -48,7 +48,6 @@ jobs:
             output-01-minimal-example/
       - name: Helm uninstall
         run: |
-            sleep 2
             sudo helm uninstall vllm
         if: always()
       - run: echo "🍏 This job's status is ${{ job.status }}."
@@ -79,7 +78,6 @@ jobs:
             output-02-two-pods/
       - name: Helm uninstall
         run: |
-          sleep 2
           sudo helm uninstall vllm
         if: always()
       - run: echo "🍏 This job's status is ${{ job.status }}."
@@ -103,7 +101,6 @@ jobs:
             output-04-multiple-models/
       - name: Helm uninstall
         run: |
-            sleep 2
             sudo helm uninstall vllm
         if: always()
       - run: echo "🍏 This job's status is ${{ job.status }}."
