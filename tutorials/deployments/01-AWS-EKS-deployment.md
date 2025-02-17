@@ -216,7 +216,7 @@ servingEngineSpec:
     pvcStorage: "40Gi"
     pvcAccessMode:
       - ReadWriteMany
-    storageClass: "efs_static_storage_class_indicator"
+    storageClass: ""
 ```
 
 ### Step 7 Stopping the Helm Cluster
