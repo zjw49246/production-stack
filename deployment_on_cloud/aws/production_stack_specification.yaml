@@ -15,3 +15,4 @@ servingEngineSpec:
     pvcStorage: "40Gi"
     pvcAccessMode:
       - ReadWriteMany
+    storageClass: "efs_static_storage_class_indicator" #This is to let helm pvc know it should be empty string
