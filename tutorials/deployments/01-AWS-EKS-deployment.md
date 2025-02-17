@@ -2,7 +2,7 @@
 
 This guide walks you through the script that sets up a vLLM production-stack on top of EKS on AWS. It includes how the script configures Elastic File System (EFS) for persistent volume, setting the security groups, and deploying a production AI inference stack using Helm.
 
-## Prerequisites
+## Installing Prerequisites
 
 Before running this setup, ensure you have:
 
@@ -10,6 +10,20 @@ Before running this setup, ensure you have:
 2. AWS eksctl
 3. Kubectl
 4. Helm
+
+## TLDR
+
+To run the service
+
+```bash
+bash entry_point.sh YOUR_AWSREGION EXAMPLE_YAML_PATH
+```
+
+Clean up the service (not including VPC) with:
+
+```bash
+bash clean_up.sh production-stack YOUR_AWSREGION
+```
 
 ## Step by Step Explanation
 
@@ -202,6 +216,7 @@ servingEngineSpec:
     pvcStorage: "40Gi"
     pvcAccessMode:
       - ReadWriteMany
+    storageClass: "efs_static_storage_class_indicator"
 ```
 
 ### Step 7 Stopping the Helm Cluster
