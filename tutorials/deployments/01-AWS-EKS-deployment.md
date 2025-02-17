@@ -222,19 +222,23 @@ helm install vllm vllm/vllm-stack -f production_stack_specification.yaml
 
 ### Step 8: Cleanup AWS resources
 
-This step cleans up EKS, VPC, security groups, and ... for future use.
+This step cleans up EKS, mount-points, created security groups, EFS.
 
 ```bash
-eksctl delete cluster --name "$CLUSTER_NAME" --region "$AWS_REGION"
+bash clean_up.sh "$CLUSTER_NAME" "$AWS_REGION"
 ```
 
 ## Summary
 
 This tutorial covers:
 ✅ Creating an EKS cluster with GPU nodes
+\
 ✅ Setting up Amazon EFS for persistent storage
+\
 ✅ Deploying EFS CSI driver
+\
 ✅ Creating Persistent Volumes
-✅ Installing a production AI inference stack with Helm
+\
+✅ Installing a production stack for vLLM inference with Helm
 
 Now your AWS EKS production-stack is ready for large-scale AI model deployment 🚀!
