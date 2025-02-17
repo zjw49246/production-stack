@@ -4,7 +4,7 @@
 [ ! -d "output-04-multiple-models" ] && mkdir output-04-multiple-models
 chmod -R 777 output-04-multiple-models
 # shellcheck disable=SC2034  # result_model appears unused. Verify it or export it.
-result_model=$(curl -s "http://$1:$2/models" | tee output-04-multiple-models/models-04-multiple-models.json)
+result_model=$(curl -s "http://$1:$2/v1/models" | tee output-04-multiple-models/models-04-multiple-models.json)
 
 # shellcheck disable=SC1091  # Not following: /usr/local/bin/conda-init was not specified as input
 source /usr/local/bin/conda-init

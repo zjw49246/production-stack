@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(description="Use OpenAI API with custom base UR
 parser.add_argument(
     "--openai_api_base",
     type=str,
-    default="http://localhost:30080/",
+    default="http://localhost:30080/v1/",
     help="The base URL for the OpenAI API",
 )
 parser.add_argument(
