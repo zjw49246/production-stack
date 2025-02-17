@@ -30,6 +30,10 @@ jobs:
       - name: Deploy via helm charts
         run: |
           cd ${{ github.workspace }}
+          sudo docker build -t localhost:5000/git-act-router -f docker/Dockerfile .
+          sudo docker push localhost:5000/git-act-router
+          sudo minikube image load localhost:5000/git-act-router
+          mv -f .github/deployment-router.yaml helm/templates/deployment-router.yaml
           sudo helm install vllm ./helm -f tutorials/assets/values-01-minimal-example.yaml
       - name: Validate the installation and send query to the stack
         run: |
