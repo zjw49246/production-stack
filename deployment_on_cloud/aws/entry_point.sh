@@ -1,3 +1,5 @@
+#!/bin/bash
+
 AWS_REGION=$1
 SETUP_YAML=$2
 CLUSTER_NAME="production-stack"
@@ -17,7 +19,7 @@ eksctl create cluster \
 
 
 # Create EFS (need to be in same VPC as EKS)
-bash set_up_efs.sh $CLUSTER_NAME $AWS_REGION
+bash set_up_efs.sh "$CLUSTER_NAME" "$AWS_REGION"
 
 # #Create CSI driver
 eksctl utils associate-iam-oidc-provider --region "$AWS_REGION" --cluster "$CLUSTER_NAME" --approve
@@ -55,8 +57,8 @@ spec:
 EOF
 
 kubectl apply -f efs-pv.yaml
-echo "$(kubectl get pv)"
+kubectl get pv
 
 #Now we start the production stack.
 helm repo add vllm https://vllm-project.github.io/production-stack
-helm install vllm vllm/vllm-stack -f $SETUP_YAML
+helm install vllm vllm/vllm-stack -f "$SETUP_YAML"

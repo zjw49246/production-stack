@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e  # Exit on error
 set -o pipefail  # Exit on first command failure in a pipeline
 
@@ -7,15 +8,13 @@ EFS_NAME="efs_for_eks"
 
 # Fetch VPC ID
 VPC_ID=$(aws eks describe-cluster --name "$CLUSTER_NAME" --query "cluster.resourcesVpcConfig.vpcId" --output text)
-echo "VPC ID: $VPC_ID"
 
 # Fetch Subnet IDs
-SUBNET_IDS=($(aws eks describe-cluster --name "$CLUSTER_NAME" --query "cluster.resourcesVpcConfig.subnetIds" --output text))
-echo "Subnets: ${SUBNET_IDS[@]}"
+read -r -a SUBNET_IDS <<< "$(aws eks describe-cluster --name "$CLUSTER_NAME" --query "cluster.resourcesVpcConfig.subnetIds" --output text)"
 
 # Fetch Security Group used by EKS
 INSTANCE_ID=$(aws ec2 describe-instances --filters Name=tag:eks:cluster-name,Values=production-stack --query "Reservations[*].Instances[*].InstanceId" --output text | head -n 1)
-EKS_SG_ID=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query "Reservations[0].Instances[0].SecurityGroups[*].GroupId" --output text)
+EKS_SG_ID=$(aws ec2 describe-instances --instance-ids "$INSTANCE_ID" --query "Reservations[0].Instances[0].SecurityGroups[*].GroupId" --output text)
 echo "EKS Security Group ID: $EKS_SG_ID"
 
 # Create Security Group for EFS
@@ -23,7 +22,7 @@ EFS_SG_ID=$(aws ec2 create-security-group \
     --group-name efs-sg \
     --description "Allow NFS from EKS" \
     --vpc-id "$VPC_ID" \
-    --query "GroupId" --output text --region $REGION)
+    --query "GroupId" --output text --region "$REGION")
 echo "Created Security Group for EFS: $EFS_SG_ID"
 
 # Allow NFS traffic (port 2049) from EKS nodes
@@ -48,7 +47,7 @@ echo "Created EFS File System: $EFS_ID"
 # Wait for EFS to be available
 echo "Waiting for EFS to become available..."
 while true; do
-    STATE=$(aws efs describe-file-systems --file-system-id $EFS_ID --query "FileSystems[0].LifeCycleState" --output text)
+    STATE=$(aws efs describe-file-systems --file-system-id "$EFS_ID" --query "FileSystems[0].LifeCycleState" --output text)
     echo "Current EFS state: $STATE"
 
     if [[ "$STATE" == "available" ]]; then
