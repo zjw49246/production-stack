@@ -35,7 +35,7 @@ jobs:
           sudo sysctl fs.protected_regular=0
           sudo minikube image load localhost:5000/git-act-router
           mv -f .github/deployment-router.yaml helm/templates/deployment-router.yaml
-          sudo helm install vllm ./helm -f tutorials/assets/values-01-minimal-example.yaml
+          sudo helm install vllm ./helm -f .github/values-01-minimal-example.yaml
       - name: Validate the installation and send query to the stack
         run: |
           sudo bash .github/port-forward.sh curl-01-minimal-example
@@ -59,7 +59,7 @@ jobs:
       - name: Deploy via helm charts
         run: |
           cd ${{ github.workspace }}
-          sudo helm install vllm ./helm -f tutorials/assets/values-01-2pods-minimal-example.yaml
+          sudo helm install vllm ./helm -f .github/values-01-2pods-minimal-example.yaml
       - name: Validate the installation and send query to the stack
         run: |
           sudo bash .github/port-forward.sh curl-02-two-pods
@@ -82,7 +82,7 @@ jobs:
     steps:
       - name: Deploy via helm charts
         run: |
-          sudo helm install vllm ./helm -f .github/multiple-models.yaml
+          sudo helm install vllm ./helm -f .github/values-04-multiple-models.yaml
       - name: Validate the installation and send query to the stack
         run: |
           sudo bash .github/port-forward.sh curl-04-multiple-models

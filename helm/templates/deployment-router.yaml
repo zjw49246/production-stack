@@ -20,7 +20,8 @@ spec:
       serviceAccountName: {{ .Release.Name }}-router-service-account
       containers:
       - name: router-container
-        image: lmcache/lmstack-router:latest
+        image: "{{ .Values.routerSpec.repository | default "lmcache/lmstack-router" }}:{{ .Values.routerSpec.tag | default "latest" }}"
+        imagePullPolicy: "{{ .Values.routerSpec.imagePullPolicy | default "Always" }}"
         args:
           - "--host"
           - "0.0.0.0"
