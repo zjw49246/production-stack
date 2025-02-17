@@ -7,15 +7,15 @@ setup(
     package_dir={"": "src"},
     # Should be the same as src/router/requirements.txt
     install_requires=[
-        "numpy",
-        "fastapi",
-        "httpx",
-        "uvicorn",
-        "kubernetes",
-        "prometheus_client",
-        "uhashring",
-        "aiofiles",
-        "python-multipart",
+        "numpy==1.26.4",
+        "fastapi==0.115.8",
+        "httpx==0.28.1",
+        "uvicorn==0.34.0",
+        "kubernetes==32.0.0",
+        "prometheus_client==0.21.1",
+        "uhashring==2.3",
+        "aiofiles==24.1.0",
+        "python-multipart==0.0.20",
     ],
     entry_points={
         "console_scripts": [
