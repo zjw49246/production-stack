@@ -22,7 +22,7 @@ Pods for the vllm deployment should transition to Ready and the Running state.
 
 Expected output:
 
-```
+```plaintext
 NAME                                            READY   STATUS    RESTARTS   AGE
 vllm-deployment-router-69b7f9748d-xrkvn         1/1     Running   0          75s
 vllm-opt125m-deployment-vllm-696c998c6f-mvhg4   1/1     Running   0          75s
@@ -115,7 +115,6 @@ gcloud beta container --project "$GCP_PROJECT" clusters create "$CLUSTER_NAME" \
   --enable-managed-prometheus \
   --enable-shielded-nodes \
   --node-locations "$ZONE"
-
 ```
 
 - **Cluster Creation**: This command creates the GKE cluster with specified configurations, including machine type, disk type, and logging settings.

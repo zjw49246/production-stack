@@ -13,7 +13,7 @@ Pods for the vllm deployment should transition to Ready and the Running state.
 
 Expected output:
 
-```
+```plaintext
 NAME                                            READY   STATUS    RESTARTS   AGE
 vllm-deployment-router-69b7f9748d-xrkvn         1/1     Running   0          75s
 vllm-opt125m-deployment-vllm-696c998c6f-mvhg4   1/1     Running   0          75s
