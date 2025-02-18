@@ -141,6 +141,11 @@ servingEngineSpec:
   runtimeClassName: "nvidia"
 
 routerSpec:
+  # -- The docker image of the router. The following values are defaults:
+  repository: "lmcache/lmstack-router"
+  tag: "latest"
+  imagePullPolicy: "Always"
+
   # -- Whether to enable the router service
   enableRouter: true
 
