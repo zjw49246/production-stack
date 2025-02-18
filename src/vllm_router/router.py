@@ -231,7 +231,6 @@ async def route_files(request: Request):
         )
 
 
-
 @app.get("/v1/files/{file_id}")
 async def route_get_file(file_id: str):
     try:
@@ -242,7 +241,6 @@ async def route_get_file(file_id: str):
         return JSONResponse(
             status_code=404, content={"error": f"File {file_id} not found"}
         )
-
 
 
 @app.get("/v1/files/{file_id}/content")
@@ -443,7 +441,6 @@ async def route_cancel_batch(batch_id: str):
         return JSONResponse(
             status_code=404, content={"error": f"Batch {batch_id} not found"}
         )
-
 
 
 @app.post("/v1/chat/completions")
