@@ -87,16 +87,17 @@ class RequestStatsMonitor:
         """
         self.sliding_window_size = sliding_window_size
 
-        # Monitors for calculating QPS and TTFT
+        # Finished requests for each serving engine
+        # The elements in the deque should be sorted by 'complete' time
         self.qps_monitors: Dict[str, MovingAverageMonitor] = {}
         self.ttft_monitors: Dict[str, MovingAverageMonitor] = {}
 
-        # Record initial request start time: (engine_url, request_id) -> timestamp
+        # The time when the request is coming (engine_url, request_id) -> timestamp
         self.request_start_time: Dict[Tuple[str, str], float] = {}
         # Record time when first token is received: (engine_url, request_id) -> timestamp
         self.first_token_time: Dict[Tuple[str, str], float] = {}
 
-        # Counters for requests in different stages
+        # Number of requests in different stages (from the start of the router)
         self.in_prefill_requests: Dict[str, int] = {}
         self.in_decoding_requests: Dict[str, int] = {}
         self.finished_requests: Dict[str, int] = {}
@@ -195,13 +196,16 @@ class RequestStatsMonitor:
 
     def get_request_stats(self, current_time: float) -> Dict[str, RequestStats]:
         """
-        Get the request statistics from the monitor.
+        Get the request statistics for each serving engine
 
         Args:
-            current_time: The current timestamp
+            current_time: The current timestamp in seconds
 
         Returns:
-            A dictionary mapping engine URLs to RequestStats objects
+            A dictionary where the key is the serving engine URL and the value
+            is the request statistics for that engine.
+            The TTFT and inter token latency will be -1 if there is no requests
+            finished in the sliding window.
         """
         ret = {}
         urls = set(self.in_prefill_requests.keys()).union(
