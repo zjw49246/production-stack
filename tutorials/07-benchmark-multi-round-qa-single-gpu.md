@@ -34,7 +34,7 @@ servingEngineSpec:
   modelSpec:
   - name: "llama3"
     repository: "lmcache/vllm-openai"
-    tag: "latest"
+    tag: "2025-03-10"
     modelURL: "meta-llama/Llama-3.1-8B-Instruct"
     replicaCount: 1
     requestCPU: 10
@@ -56,12 +56,12 @@ servingEngineSpec:
 
 routerSpec:
   resources:
-  requests:
-    cpu: "2"
-    memory: "8G"
-  limits:
-    cpu: "2"
-    memory: "8G"
+    requests:
+      cpu: "2"
+      memory: "8G"
+    limits:
+      cpu: "2"
+      memory: "8G"
   routingLogic: "session"
   sessionKey: "x-user-id"
 ```
@@ -104,7 +104,7 @@ servingEngineSpec:
   modelSpec:
   - name: "llama3"
     repository: "lmcache/vllm-openai"
-    tag: "latest"
+    tag: "2025-03-10"
     modelURL: "meta-llama/Llama-3.1-8B-Instruct"
     replicaCount: 1
     requestCPU: 10
