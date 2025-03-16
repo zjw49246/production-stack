@@ -1,9 +1,10 @@
 # vLLM Production Stack: reference stack for production vLLM deployment
 
-| [**Blog**](https://lmcache.github.io) | [**Production-Stack Slack Channel**](https://vllm-dev.slack.com/archives/C089SMEAKRA) | [**LMCache Slack**](https://join.slack.com/t/lmcacheworkspace/shared_invite/zt-2viziwhue-5Amprc9k5hcIdXT7XevTaQ) | [**Interest Form**](https://forms.gle/mQfQDUXbKfp2St1z7) | [**Official Email**](contact@lmcache.ai) |
+| [**Blog**](https://lmcache.github.io) | [**Docs**](https://docs.lmcache.ai/vllm-production-stack/) | [**Production-Stack Slack Channel**](https://vllm-dev.slack.com/archives/C089SMEAKRA) | [**LMCache Slack**](https://join.slack.com/t/lmcacheworkspace/shared_invite/zt-2viziwhue-5Amprc9k5hcIdXT7XevTaQ) | [**Interest Form**](https://forms.gle/mQfQDUXbKfp2St1z7) | [**Official Email**](contact@lmcache.ai) |
 
 ## Latest News
 
+- 📄 Official documentation released for production-stack! [Link](https://docs.lmcache.ai/vllm-production-stack/)
 - ✨ Cloud Deployment Tutorials for Lambda Labs, AWS EKS, Google GCP are out! [Link](https://github.com/vllm-project/production-stack/blob/main/tutorials)
 - 🛤️ 2025 Q1 Road Map Released! Join the discussion [here](https://github.com/vllm-project/production-stack/issues/26)!
 - 🔥 vLLM Production Stack is released! Checkout our [release blogs](https://blog.lmcache.ai/2025-01-21-stack-release) [01-22-2025]
